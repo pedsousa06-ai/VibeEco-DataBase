@@ -1,89 +1,208 @@
--- ***** CRIANDO BANCO DE DADOS *****
+-- ***** BANCO DE DADOS VIBEECO *****
+create database if not exists db_vibeEco_2026;
+use db_vibeEco_2026;
 
-# Cria o database do projeto da vibeEco
-create database db_vibeEco_2026;
-
--- ***** CRIANDO TABELAS *****
-
--- Criando a tabela de usuario
-create table tbl_usuario(
+-- Tabulas de Suporte / Domínio
+create table tbl_escolaridade(
     id int not null primary key auto_increment,
-    nome varchar(50) not null,
-    email varchar(255) not null,
-    senha varchar(10),
-    created_by varchar(45),
-    foto text,
-    total_xp int,
-    coins int
+    nome varchar(75) not null
 );
 
--- Criando a tabela de missoes
-create table missao(
-	id int not null primary key auto_increment,
+create table tbl_status(
+    id int not null primary key auto_increment,
+    is_active boolean not null default true
+);
+
+create table tbl_nivel_acesso(
+    id int not null primary key auto_increment,
+    nivel varchar(25) not null
+);
+
+create table tbl_level_user(
+    id int not null primary key auto_increment,
+    nome varchar(40) not null,
+    numero_level int not null,
+    xp_necessario int not null
+);
+
+create table tbl_instituicao(
+    id int not null primary key auto_increment,
+    nome varchar(100) not null,
+    descricao text
+);
+
+create table tbl_categoria(
+    id int not null primary key auto_increment,
+    nome varchar(50) not null
+);
+
+-- Tabela de Utilizador (RF-001, RF-002)
+create table tbl_usuario(
+    id int not null primary key auto_increment,
+    nome varchar(100) not null,
+    email varchar(255) not null unique,
+    senha varchar(255) not null, -- Tamanho adequado para hash
+    foto text,
+    total_xp int default 0,
+    coins int default 0,
+    supercoins int default 0,
+    dias_ofensiva int default 0,
+    data_ultimo_acesso datetime,
+    id_escolaridade int not null,
+    id_status int not null,
+    id_instituicao int not null,
+    id_nivel_acesso int not null,
+    id_level int not null,
+    constraint FK_ESCOLARIDADE_USUARIO foreign key (id_escolaridade) references tbl_escolaridade(id),
+    constraint FK_STATUS_USUARIO foreign key (id_status) references tbl_status(id),
+    constraint FK_INSTITUICAO_USUARIO foreign key (id_instituicao) references tbl_instituicao(id),
+    constraint FK_NIVEL_ACESSO_USUARIO foreign key (id_nivel_acesso) references tbl_nivel_acesso(id),
+    constraint FK_LEVEL_USUARIO foreign key (id_level) references tbl_level_user(id)
+);
+
+-- Missões, Desafios e Conteúdos (RF-004, RF-005, RF-008)
+create table tbl_missao(
+    id int not null primary key auto_increment,
     nome varchar(100) not null,
     descricao text,
-	coins int not null,
-	total_xp_missao int not null,
-	data_inicio date not null,
+    coins int not null,
+    total_xp_missao int not null,
+    data_inicio date not null,
     data_termino date not null
 );
 
--- Criando a tabela de desafios
-create table desafio(
-	id int not null primary key auto_increment,
+create table tbl_desafio(
+    id int not null primary key auto_increment,
     nome varchar(100) not null,
     descricao text,
     supercoins int not null,
-	data_inicio date,
+    data_inicio date,
     data_termino date
 );
 
- -- Criando a tabela de recompensas
- create table recompensa(
-	id int not null primary key auto_increment,
-    nome varchar(50) not null,
+create table tbl_conteudo_educativo(
+    id int not null primary key auto_increment,
+    nome varchar(100) not null,
+    descricao text,
+    tipo enum('TEXTO', 'VIDEO', 'QUIZ', 'IMAGEM') not null,
+    img text
+);
+
+create table tbl_recompensa(
+    id int not null primary key auto_increment,
+    nome varchar(100) not null,
     descricao text,
     valor int not null,
-	data_inicio date,
+    data_inicio date,
     data_termino date
 );
 
--- Criando a tabela de conquista
-create table conquista(
-	id int not null primary key auto_increment,
+create table tbl_conquista(
+    id int not null primary key auto_increment,
     nome varchar(100) not null,
     descricao text,
-	img text not null
+    img text not null
 );
 
--- Criando a tabela de conteudo educativo
-create table conteudo_educativo(
-	id int not null primary key auto_increment,
-    nome varchar(100) not null,
-    descricao text,
-	img text not null
-);
-
--- Criando a tabela de anexo
-create table anexo(
-	id int not null primary key auto_increment,
+create table tbl_anexo(
+    id int not null primary key auto_increment,
     nome varchar(100) not null,
     endereco_url text not null
 );
 
--- Criando a tabela de feed_post
-create table feed_post(
-	id int not null primary key auto_increment,
-    nome varchar(100) not null,
-    descricao text not null
+-- Feed e Interações Sociais (RF-003, RF-010)
+create table tbl_feed_post(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    descricao text not null,
+    data_publicacao datetime default current_timestamp,
+    constraint FK_USUARIO_POST foreign key (id_usuario) references tbl_usuario(id)
 );
 
--- Criando a tabela de instituicao
-create table instituicao(
-	id int not null primary key auto_increment,
-    nome varchar(45) not null,
-    descricao text not null
+create table tbl_post_anexo(
+    id int not null primary key auto_increment,
+    id_post int not null,
+    id_anexo int not null,
+    constraint FK_POST_ANEXO_POST foreign key (id_post) references tbl_feed_post(id),
+    constraint FK_POST_ANEXO_ANEXO foreign key (id_anexo) references tbl_anexo(id)
 );
 
+create table tbl_post_curtida(
+    id_usuario int not null,
+    id_post int not null,
+    data_curtida datetime default current_timestamp,
+    primary key (id_usuario, id_post),
+    constraint FK_CURTIDA_USUARIO foreign key (id_usuario) references tbl_usuario(id),
+    constraint FK_CURTIDA_POST foreign key (id_post) references tbl_feed_post(id)
+);
 
+create table tbl_post_comentario(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    id_post int not null,
+    comentario text not null,
+    data_comentario datetime default current_timestamp,
+    constraint FK_COMENTARIO_USUARIO foreign key (id_usuario) references tbl_usuario(id),
+    constraint FK_COMENTARIO_POST foreign key (id_post) references tbl_feed_post(id)
+);
 
+-- Notificações (RF-009)
+create table tbl_notificacao(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    titulo varchar(100) not null,
+    mensagem text not null,
+    lida boolean default false,
+    data_criacao datetime default current_timestamp,
+    constraint FK_NOTIFICACAO_USUARIO foreign key (id_usuario) references tbl_usuario(id)
+);
+
+-- Tabelas de Associação com Controlo de Estado (RF-004, RF-008, RF-011, RF-012)
+create table tbl_usuario_missao(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    id_missao int not null,
+    status enum('EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA') default 'EM_ANDAMENTO',
+    data_conclusao datetime,
+    constraint FK_UM_USUARIO foreign key (id_usuario) references tbl_usuario(id),
+    constraint FK_UM_MISSAO foreign key (id_missao) references tbl_missao(id)
+);
+
+create table tbl_usuario_desafio(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    id_desafio int not null,
+    status enum('EM_ANDAMENTO', 'CONCLUIDO') default 'EM_ANDAMENTO',
+    data_conclusao datetime,
+    constraint FK_UD_USUARIO foreign key (id_usuario) references tbl_usuario(id),
+    constraint FK_UD_DESAFIO foreign key (id_desafio) references tbl_desafio(id)
+);
+
+create table tbl_usuario_recompensa(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    id_recompensa int not null,
+    data_resgate datetime default current_timestamp,
+    codigo_resgate varchar(50),
+    constraint FK_UR_USUARIO foreign key (id_usuario) references tbl_usuario(id),
+    constraint FK_UR_RECOMPENSA foreign key (id_recompensa) references tbl_recompensa(id)
+);
+
+create table tbl_usuario_conteudo_educativo(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    id_conteudo_educativo int not null,
+    concluido boolean default false,
+    data_acesso datetime default current_timestamp,
+    constraint FK_UCE_USUARIO foreign key (id_usuario) references tbl_usuario(id),
+    constraint FK_UCE_CONTEUDO foreign key (id_conteudo_educativo) references tbl_conteudo_educativo(id)
+);
+
+create table tbl_usuario_conquista(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    id_conquista int not null,
+    data_conquista datetime default current_timestamp,
+    constraint FK_UC_USUARIO foreign key (id_usuario) references tbl_usuario(id),
+    constraint FK_UC_CONQUISTA foreign key (id_conquista) references tbl_conquista(id)
+);
