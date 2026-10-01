@@ -45,7 +45,6 @@ create table tbl_usuario(
     foto text,
     total_xp int default 0,
     coins int default 0,
-    supercoins int default 0,
     dias_ofensiva int default 0,
     data_ultimo_acesso datetime,
     id_escolaridade int not null,
@@ -58,6 +57,14 @@ create table tbl_usuario(
     constraint FK_INSTITUICAO_USUARIO foreign key (id_instituicao) references tbl_instituicao(id),
     constraint FK_NIVEL_ACESSO_USUARIO foreign key (id_nivel_acesso) references tbl_nivel_acesso(id),
     constraint FK_LEVEL_USUARIO foreign key (id_level) references tbl_level_user(id)
+);
+
+create table tbl_usuario_adm(
+	id int not null primary key auto_increment,
+    email varchar(255) not null,
+    senha varchar(255) not null,
+    id_nivel_acesso int not null,
+    constraint FK_NIVEL_ACESSO_USUARIO foreign key (id_nivel_acesso) references tbl_nivel_acesso(id)
 );
 
 -- Missões, Desafios e Conteúdos (RF-004, RF-005, RF-008)
@@ -84,7 +91,6 @@ create table tbl_conteudo_educativo(
     id int not null primary key auto_increment,
     nome varchar(100) not null,
     descricao text,
-    tipo enum('TEXTO', 'VIDEO', 'QUIZ', 'IMAGEM') not null,
     img text
 );
 
@@ -157,7 +163,7 @@ create table tbl_notificacao(
     constraint FK_NOTIFICACAO_USUARIO foreign key (id_usuario) references tbl_usuario(id)
 );
 
--- Tabelas de Associação com Controlo de Estado (RF-004, RF-008, RF-011, RF-012)
+-- Tabelas de Associação com Controle de Estado (RF-004, RF-008, RF-011, RF-012)
 create table tbl_usuario_missao(
     id int not null primary key auto_increment,
     id_usuario int not null,
