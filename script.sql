@@ -2,7 +2,7 @@
 create database if not exists db_vibeEco_2026;
 use db_vibeEco_2026;
 
--- Tabulas de Suporte / Domínio
+-- Tabelas de Suporte / Domínio
 create table tbl_escolaridade(
     id int not null primary key auto_increment,
     nome varchar(75) not null
@@ -36,6 +36,23 @@ create table tbl_categoria(
     nome varchar(50) not null
 );
 
+create table tbl_ofensiva(
+	id int not null primary key auto_increment,
+    data_atual date not null,
+    concluido boolean
+);
+
+create table tbl_dificuldade(
+	id int not null primary key,
+    nome varchar(50) not null
+);
+
+create table tbl_anexo(
+    id int not null primary key auto_increment,
+    nome varchar(100) not null,
+    endereco_url text not null
+);
+
 -- Tabela de Utilizador (RF-001, RF-002)
 create table tbl_usuario(
     id int not null primary key auto_increment,
@@ -45,7 +62,6 @@ create table tbl_usuario(
     foto text,
     total_xp int default 0,
     coins int default 0,
-    dias_ofensiva int default 0,
     data_ultimo_acesso datetime,
     id_escolaridade int not null,
     id_status int not null,
@@ -64,7 +80,7 @@ create table tbl_usuario_adm(
     email varchar(255) not null,
     senha varchar(255) not null,
     id_nivel_acesso int not null,
-    constraint FK_NIVEL_ACESSO_USUARIO foreign key (id_nivel_acesso) references tbl_nivel_acesso(id)
+    constraint FK_NIVEL_ACESSO_USUARIO_ADM foreign key (id_nivel_acesso) references tbl_nivel_acesso(id)
 );
 
 -- Missões, Desafios e Conteúdos (RF-004, RF-005, RF-008)
@@ -75,23 +91,77 @@ create table tbl_missao(
     coins int not null,
     total_xp_missao int not null,
     data_inicio date not null,
-    data_termino date not null
+    data_termino date not null,
+    id_dificuldade int not null,
+    constraint FK_DIFICULDADE_MISSAO foreign key(id_dificuldade) references tbl_dificuldade(id)
+);
+
+create table tbl_missao_categoria(
+    id int not null primary key auto_increment,
+    id_missao  int not null,
+    id_categoria int not null,
+    
+    # Relacao para a missao
+    constraint FK_MISSAO_MISSAOCATEGORIA
+    foreign key (id_missao)
+    references tbl_missao(id),
+    
+    # Relação para a categoria
+    constraint FK_CATEGORIA_MISSAOCATEGORIA
+    foreign key (id_categoria)
+    references tbl_categoria(id)
 );
 
 create table tbl_desafio(
     id int not null primary key auto_increment,
     nome varchar(100) not null,
     descricao text,
-    supercoins int not null,
+    super_coins int not null,
     data_inicio date,
-    data_termino date
+    data_termino date,
+	id_dificuldade int not null,
+    constraint FK_DIFICULDADE_DESAFIO foreign key(id_dificuldade) references tbl_dificuldade(id)
+);
+
+create table tbl_desafio_categoria(
+    id int not null primary key auto_increment,
+    id_desafio int not null,
+    id_categoria int not null,
+    
+    
+    # Relacao para a desafio
+    constraint FK_DESAFIO_DESAFIOCATEGORIA
+    foreign key (id_desafio)
+    references tbl_desafio(id),
+    
+    # Relação para a categoria
+    constraint FK_CATEGORIA_DESAFIOCATEGORIA
+    foreign key (id_categoria)
+    references tbl_categoria(id)
 );
 
 create table tbl_conteudo_educativo(
     id int not null primary key auto_increment,
     nome varchar(100) not null,
     descricao text,
-    img text
+    img text not null
+);
+
+create table tbl_conteudo_educativo_categoria(
+    id int not null primary key auto_increment,
+    id_conteudo_educativo int not null,
+    id_categoria int not null,
+    
+    
+    # Relacao para a desafio
+    constraint FK_CONTEUDOEDUCATIVO_CONTEUDOEDUCATIVOCATEGORIA
+    foreign key (id_conteudo_educativo)
+    references tbl_conteudo_educativo(id),
+    
+    # Relação para a categoria
+    constraint FK_CATEGORIA_CONTEUDOEDUCATIVOCATEGORIA
+    foreign key (id_categoria)
+    references tbl_categoria(id)
 );
 
 create table tbl_recompensa(
@@ -110,14 +180,9 @@ create table tbl_conquista(
     img text not null
 );
 
-create table tbl_anexo(
-    id int not null primary key auto_increment,
-    nome varchar(100) not null,
-    endereco_url text not null
-);
 
 -- Feed e Interações Sociais (RF-003, RF-010)
-create table tbl_feed_post(
+create table tbl_post(
     id int not null primary key auto_increment,
     id_usuario int not null,
     descricao text not null,
@@ -129,17 +194,18 @@ create table tbl_post_anexo(
     id int not null primary key auto_increment,
     id_post int not null,
     id_anexo int not null,
-    constraint FK_POST_ANEXO_POST foreign key (id_post) references tbl_feed_post(id),
+    constraint FK_POST_ANEXO_POST foreign key (id_post) references tbl_post(id),
     constraint FK_POST_ANEXO_ANEXO foreign key (id_anexo) references tbl_anexo(id)
 );
 
+-- Retirar a duvida com o professor referente a essa tabela
 create table tbl_post_curtida(
     id_usuario int not null,
     id_post int not null,
     data_curtida datetime default current_timestamp,
     primary key (id_usuario, id_post),
     constraint FK_CURTIDA_USUARIO foreign key (id_usuario) references tbl_usuario(id),
-    constraint FK_CURTIDA_POST foreign key (id_post) references tbl_feed_post(id)
+    constraint FK_CURTIDA_POST foreign key (id_post) references tbl_post(id)
 );
 
 create table tbl_post_comentario(
@@ -149,7 +215,15 @@ create table tbl_post_comentario(
     comentario text not null,
     data_comentario datetime default current_timestamp,
     constraint FK_COMENTARIO_USUARIO foreign key (id_usuario) references tbl_usuario(id),
-    constraint FK_COMENTARIO_POST foreign key (id_post) references tbl_feed_post(id)
+    constraint FK_COMENTARIO_POST foreign key (id_post) references tbl_post(id)
+);
+
+create table tbl_premiacao(
+	id int not null primary key auto_increment,
+    nome varchar(20) not null,
+    descricao text,
+    codigo_rastreio varchar(50) not null,
+    motivo_premiacao text
 );
 
 -- Notificações (RF-009)
@@ -172,6 +246,23 @@ create table tbl_usuario_missao(
     data_conclusao datetime,
     constraint FK_UM_USUARIO foreign key (id_usuario) references tbl_usuario(id),
     constraint FK_UM_MISSAO foreign key (id_missao) references tbl_missao(id)
+);
+
+create table tbl_usuario_premiacao(
+    id int not null primary key auto_increment,
+    id_usuario int not null,
+    id_premiacao  int not null,
+    
+    
+    # Relacao para a usuario
+    constraint FK_USUARIO_USUARIOPREMIACAO
+    foreign key (id_usuario)
+    references tbl_usuario(id),
+    
+    # Relação para a premiacao
+    constraint FK_PREMIACAO_USUARIOPREMIACAO
+    foreign key (id_premiacao)
+    references tbl_premiacao(id)
 );
 
 create table tbl_usuario_desafio(
@@ -212,3 +303,64 @@ create table tbl_usuario_conquista(
     constraint FK_UC_USUARIO foreign key (id_usuario) references tbl_usuario(id),
     constraint FK_UC_CONQUISTA foreign key (id_conquista) references tbl_conquista(id)
 );
+
+-- Retirar duvida com o professor para saber se é possivel fazer um update da ofensiva diretamente por essa tabela 
+create table tbl_usuario_missao_usuario_conteudo_educativo_ofensiva(
+    id int not null primary key auto_increment,
+    id_usuario_missao int not null,
+    id_usuario_conteudo_educativo int not null,
+    id_ofensiva int not null,
+    
+    
+    # Relacao para a usuario
+    constraint FK_USUARIOMISSAO_USUARIOMISSAO_OFENSIVA
+    foreign key (id_usuario_missao)
+    references tbl_usuario_missao(id),
+    
+    # Relação para a conteudo educativo
+    constraint FK_USUARIOCONTEUDOEDUCATIVO_USUARIOCONTEUDOEDUCATIVO_OFENSIVA
+    foreign key (id_usuario_conteudo_educativo)
+    references tbl_usuario_conteudo_educativo(id),
+    
+    # Relação para a ofensiva
+    constraint FK_OFENSIVA_USUARIOMISSAO_USUARIOCONTEUDOEDUCATIVO_OFENSIVA
+    foreign key (id_ofensiva)
+    references tbl_ofensiva(id)
+);
+
+-- Cria a tabela de conteudo educativo relacionada com anexo
+create table tbl_conteudo_educativo_anexo(
+    id int not null primary key auto_increment,
+    id_conteudo_educativo int not null,
+    id_anexo  int not null,
+    
+    
+    # Relacao para a conteudo educativo
+    constraint FK_CONTEUDOEDUCATIVO_CONTEUDOEDUCATIVOANEXO
+    foreign key (id_conteudo_educativo)
+    references tbl_conteudo_educativo(id),
+    
+    # Relação para a anexo
+    constraint FK_ANEXO_CONTEUDOEDUCATIVOANEXO
+    foreign key (id_anexo)
+    references tbl_anexo(id)
+);
+
+-- Cria a tabela de recompensas relacionada com anexo
+create table tbl_recompensa_anexo(
+    id int not null primary key auto_increment,
+    id_recompensa int not null,
+    id_anexo  int not null,
+    
+    
+    # Relacao para a conteudo recompensa
+    constraint FK_RECOMPENSA_RECOMPENSAANEXO
+    foreign key (id_recompensa)
+    references tbl_recompensa(id),
+    
+    # Relação para a anexo
+    constraint FK_ANEXO_RECOMPENSAANEXO
+    foreign key (id_anexo)
+    references tbl_anexo(id)
+);
+
