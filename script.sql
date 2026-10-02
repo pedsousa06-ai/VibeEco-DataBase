@@ -198,12 +198,12 @@ create table tbl_post_anexo(
     constraint FK_POST_ANEXO_ANEXO foreign key (id_anexo) references tbl_anexo(id)
 );
 
--- Retirar a duvida com o professor referente a essa tabela
+-- Tratar a curtida no front para não curtir duas vezes
 create table tbl_post_curtida(
+	id int not null primary key auto_increment,
     id_usuario int not null,
     id_post int not null,
     data_curtida datetime default current_timestamp,
-    primary key (id_usuario, id_post),
     constraint FK_CURTIDA_USUARIO foreign key (id_usuario) references tbl_usuario(id),
     constraint FK_CURTIDA_POST foreign key (id_post) references tbl_post(id)
 );
