@@ -38,8 +38,17 @@ create table tbl_categoria(
 
 create table tbl_ofensiva(
 	id int not null primary key auto_increment,
-    data_atual date not null,
-    concluido boolean
+    id_usuario int not null,
+    data_ofensiva date not null,
+    concluido boolean not null default false,
+    
+	constraint FK_USUARIO_OFENSIVA
+		foreign key (id_usuario)
+        references tbl_usuario(id),
+
+	-- Responsável por nao permitir o recadastro da ofensiva em uma mesma data
+    constraint UQ_USUARIO_DATA_OFENSIVA
+        unique (id_usuario, data_ofensiva)
 );
 
 create table tbl_dificuldade(
@@ -307,8 +316,8 @@ create table tbl_usuario_conquista(
 -- Retirar duvida com o professor para saber se é possivel fazer um update da ofensiva diretamente por essa tabela 
 create table tbl_usuario_missao_usuario_conteudo_educativo_ofensiva(
     id int not null primary key auto_increment,
-    id_usuario_missao int not null,
-    id_usuario_conteudo_educativo int not null,
+    id_usuario_missao int null,
+    id_usuario_conteudo_educativo int null,
     id_ofensiva int not null,
     
     
