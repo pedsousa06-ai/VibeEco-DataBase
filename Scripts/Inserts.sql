@@ -14,8 +14,7 @@ insert into tbl_escolaridade (nome) values
 
 insert into tbl_status (is_active) values
 (true),
-(true);
-
+(false);
 
 insert into tbl_nivel_acesso (nivel) values
 ('USUARIO'),
@@ -344,14 +343,13 @@ insert into tbl_post (
 (
     1,
     'Hoje completei minha primeira missão sustentável!',
-    '2026-10-06 10:00:00'
+	now()
 ),
 (
     2,
     'Comecei o desafio de economia de água.',
-    '2026-10-06 11:30:00'
+    now()
 );
-
 
 -- ============================================================
 -- 14. POST + ANEXO
@@ -383,14 +381,13 @@ insert into tbl_post_curtida (
 (
     2,
     1,
-    '2026-10-06 12:00:00'
+    now()
 ),
 (
     1,
     2,
-    '2026-10-06 12:10:00'
+    now()
 );
-
 
 -- ============================================================
 -- 16. COMENTÁRIOS
@@ -406,13 +403,13 @@ insert into tbl_post_comentario (
     2,
     1,
     'Muito legal! Também vou participar.',
-    '2026-10-06 12:15:00'
+    now()
 ),
 (
     1,
     2,
     'Boa! Economizar água é muito importante.',
-    '2026-10-06 12:20:00'
+    now()
 );
 
 
@@ -456,14 +453,14 @@ insert into tbl_notificacao (
     'Missão concluída',
     'Parabéns! Você concluiu sua missão.',
     false,
-    '2026-10-06 13:00:00'
+    now()
 ),
 (
     2,
     'Novo desafio disponível',
     'Um novo desafio de sustentabilidade está disponível.',
     false,
-    '2026-10-06 13:05:00'
+    current_timestamp()
 );
 
 
@@ -481,7 +478,7 @@ insert into tbl_usuario_missao (
     1,
     1,
     'CONCLUIDA',
-    '2026-10-06 14:00:00'
+    current_date()
 ),
 (
     2,
@@ -523,7 +520,7 @@ insert into tbl_usuario_desafio (
     1,
     1,
     'CONCLUIDO',
-    '2026-10-06 15:00:00'
+    current_timestamp()
 ),
 (
     2,

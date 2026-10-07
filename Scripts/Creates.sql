@@ -1,7 +1,7 @@
 -- ***** BANCO DE DADOS VIBEECO *****
 
-create database if not exists db_vibeEco_2026;
-use db_vibeEco_2026;
+create database if not exists db_vibeEco_2029;
+use db_vibeEco_2029;
 
 
 -- ============================================================
