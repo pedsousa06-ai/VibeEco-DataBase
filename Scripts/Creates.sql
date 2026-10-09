@@ -509,4 +509,4 @@ create table tbl_recompensa_anexo(
 -- ============================================================
 
 show tables;
-desc tbl_premiacao;
+desc tbl_desafio;
