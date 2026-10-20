@@ -258,6 +258,7 @@ create table tbl_post(
 );
 
 
+
 create table tbl_post_anexo(
     id int not null primary key auto_increment,
     id_post int not null,
@@ -285,9 +286,12 @@ create table tbl_post_curtida(
 
     constraint FK_CURTIDA_POST
         foreign key (id_post)
-        references tbl_post(id)
+        references tbl_post(id),
+	
+    -- Restrição para que o usuário não curta a mesma publicação duas vezes
+    constraint UK_USUARIO_POST
+		unique (id_usuario, id_post)
 );
-
 
 create table tbl_post_comentario(
     id int not null primary key auto_increment,
