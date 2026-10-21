@@ -509,4 +509,5 @@ create table tbl_recompensa_anexo(
 -- ============================================================
 
 show tables;
-desc tbl_desafio;
+desc tbl_conteudo_educativo;
+select * from tbl_ofensiva;
