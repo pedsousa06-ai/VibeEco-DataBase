@@ -257,7 +257,19 @@ create table tbl_post(
         references tbl_usuario(id)
 );
 
-
+create table tbl_post_categoria(
+	id int not null primary key auto_increment,
+    id_post int not null,
+    id_categoria int not null,
+    
+    constraint FK_POST_CATEGORIA
+		foreign key (id_post)
+        references tbl_post(id),
+        
+	constraint FK_CATEGORIA_POST
+		foreign key (id_categoria)
+        references tbl_categoria(id)
+);
 
 create table tbl_post_anexo(
     id int not null primary key auto_increment,
@@ -271,7 +283,7 @@ create table tbl_post_anexo(
     constraint FK_POST_ANEXO_ANEXO
         foreign key (id_anexo)
         references tbl_anexo(id)
-);
+); 
 
 
 create table tbl_post_curtida(

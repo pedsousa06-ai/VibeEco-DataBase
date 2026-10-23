@@ -361,13 +361,25 @@ insert into tbl_post_anexo (
 ) values
 (
     1,
-    1
+    2
 ),
 (
     2,
-    2
+    1
 );
 
+insert into tbl_post_categoria (
+    id_post,
+    id_categoria
+) values
+(
+    1,
+    2
+),
+(
+    2,
+    1
+);
 
 -- ============================================================
 -- 15. CURTIDAS
