@@ -1,5 +1,6 @@
 -- ***** BANCO DE DADOS VIBEECO *****
 use db_vibeEco_2029;
+show tables;
 -- Seleciona todos os posts do mais recente ao mais antigo
 create view vwPostRecente as
 	SELECT 
@@ -102,7 +103,31 @@ BEGIN
 	FROM tbl_post_categoria
 		INNER JOIN tbl_categoria
 			ON tbl_post_categoria.id_categoria = tbl_categoria.id
+	WHERE tbl_post_categoria.id = id_post_categoria
+	ORDER BY tbl_categoria.nome ASC;
+END $$
+
+DELIMITER $$
+CREATE PROCEDURE procListarCategoriasByIdPost(IN id_post_categoria INT)
+BEGIN
+	SELECT
+		tbl_categoria.nome 	AS categoria
+	FROM tbl_post_categoria
+		INNER JOIN tbl_categoria
+			ON tbl_post_categoria.id_categoria = tbl_categoria.id
 	WHERE tbl_post_categoria.id_post = id_post_categoria
+	ORDER BY tbl_categoria.nome ASC;
+END $$
+
+DELIMITER $$
+CREATE PROCEDURE procListarPostByIdCategoria(IN id_post_categoria INT)
+BEGIN
+	SELECT
+		tbl_categoria.nome 	AS categoria
+	FROM tbl_post_categoria
+		INNER JOIN tbl_categoria
+			ON tbl_post_categoria.id_categoria = tbl_categoria.id
+	WHERE tbl_post_categoria.id_categoria = id_post_categoria
 	ORDER BY tbl_categoria.nome ASC;
 END $$
 
@@ -136,7 +161,7 @@ show procedure status;
 #Executa a procedure existente no banco
 call procListarComentarios(2);
 call procListarPostAnexos(2);
-call procListarPostCategorias(2);
+call procListarPostByIdCategoria(1);
 call procListarPostViaId(1);
 #Permite apagar procedures existentes no banco
 drop procedure procListarPostViaId;
