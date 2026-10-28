@@ -99,4 +99,4 @@ select	tbl_usuario_adm.id, tbl_usuario_adm.email, tbl_usuario_adm.senha,
 				inner join tbl_nivel_acesso
 					on tbl_usuario_adm.id_nivel_acesso = tbl_nivel_acesso.id
 	where tbl_usuario_adm.id = 1;
-				
+    

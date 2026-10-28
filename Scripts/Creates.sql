@@ -525,5 +525,5 @@ create table tbl_recompensa_anexo(
 -- ============================================================
 
 show tables;
-desc tbl_usuario_adm;
+desc tbl_desafio_categoria;
 select * from tbl_ofensiva;

@@ -143,3 +143,5 @@ drop procedure procListarPostViaId;
 drop procedure procListarPostCategorias;
 #Permite apagar uma view no banco
 drop view vwPostCurtidas;
+
+select * from vwPostRecente;
