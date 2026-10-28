@@ -81,4 +81,22 @@ select	tbl_usuario.id, tbl_usuario.nome, tbl_usuario.email, tbl_usuario.foto, tb
 				inner join tbl_level_user
 					on tbl_usuario.id_level = tbl_level_user.id		
 	where tbl_usuario.id = 1;
+    
+    
+-- ***** RETORNA TODOS OS DADOS DA TABELA DE USUARIOS ADM *****
+select	tbl_usuario_adm.id, tbl_usuario_adm.email, tbl_usuario_adm.senha, 
+		tbl_nivel_acesso.nivel as nivel_acesso
+			from tbl_usuario_adm
+				inner join tbl_nivel_acesso
+					on tbl_usuario_adm.id_nivel_acesso = tbl_nivel_acesso.id
+	order by tbl_usuario_adm.id desc;
+    
+    
+-- ***** RETORNA UM DADO DA TABELA DE USUARIOS ADM PELO ID *****
+select	tbl_usuario_adm.id, tbl_usuario_adm.email, tbl_usuario_adm.senha, 
+		tbl_nivel_acesso.nivel as nivel_acesso
+			from tbl_usuario_adm
+				inner join tbl_nivel_acesso
+					on tbl_usuario_adm.id_nivel_acesso = tbl_nivel_acesso.id
+	where tbl_usuario_adm.id = 1;
 				
