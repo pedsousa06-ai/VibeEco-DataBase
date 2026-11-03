@@ -372,9 +372,9 @@ call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);
 #Permite apagar procedures existentes no banco
-drop procedure procListarCurtidasByIdPostCurtida;
-drop procedure procListarComentariosByIdpostComentario;
+-- drop procedure procListarCurtidasByIdPostCurtida;
+-- drop procedure procListarComentariosByIdpostComentario;
 #Permite apagar uma view no banco
-drop view vwPostCurtidas;
+-- drop view vwPostCurtidas;
 
 select * from vwPostRecente;

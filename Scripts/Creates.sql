@@ -1,5 +1,5 @@
 -- ***** BANCO DE DADOS VIBEECO *****
-
+-- DROP DATABASE db_vibeEco_2026;
 create database if not exists db_vibeEco_2026;
 use db_vibeEco_2026;
 
@@ -525,4 +525,3 @@ CREATE TABLE IF NOT EXISTS tbl_recompensa_anexo(
 -- ============================================================
 
 show tables;
-desc tbl_recompensa;
