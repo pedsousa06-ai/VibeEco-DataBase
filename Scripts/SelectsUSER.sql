@@ -239,6 +239,7 @@ DELIMITER $$
 CREATE PROCEDURE procListarPostAnexosByIdPost(IN id_post_anexo INT)
 BEGIN
 	SELECT
+		tbl_anexo.id AS id_anexo,
 		tbl_anexo.nome 			AS nome_anexo,
         tbl_anexo.endereco_url 	as endereco_url
 	FROM tbl_post_anexo
@@ -253,6 +254,7 @@ DELIMITER $$
 CREATE PROCEDURE procListarPostAnexosByIdAnexo(IN id_post_anexo INT)
 BEGIN
 	SELECT
+		tbl_anexo.id AS id_anexo,
 		tbl_anexo.nome 	AS nome_anexo,
         tbl_anexo.endereco_url 	as endereco_url
 	FROM tbl_post_anexo
@@ -267,6 +269,7 @@ DELIMITER $$
 CREATE PROCEDURE procListarByIdPostAnexos(IN id_post_anexo INT)
 BEGIN
 	SELECT
+		tbl_anexo.id AS id_anexo,
 		tbl_anexo.nome 	AS nome_anexo,
         tbl_anexo.endereco_url 	as endereco_url
 	FROM tbl_post_anexo
@@ -367,14 +370,14 @@ DELIMITER ;
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarCurtidasByIdUsuario(1);
+call procListarByIdPostAnexos(1);
 call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);
 #Permite apagar procedures existentes no banco
--- drop procedure procListarCurtidasByIdPostCurtida;
+-- drop procedure procListarPostAnexosByIdPost;
 -- drop procedure procListarComentariosByIdpostComentario;
 #Permite apagar uma view no banco
 -- drop view vwPostCurtidas;
 
-select * from vwPostRecente;
+select * from tbl_anexo;
