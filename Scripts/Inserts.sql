@@ -666,3 +666,20 @@ insert into tbl_recompensa_anexo (
     2,
     2
 );
+
+ 
+-- 2) DIFICULDADES
+insert into tbl_dificuldade (id, nome) values
+    (1, 'Fácil'),
+    (2, 'Médio'),
+    (3, 'Difícil')
+on duplicate key update nome = values(nome);
+ 
+-- 3) CATEGORIAS
+insert into tbl_categoria (id, nome) values
+    (1, 'Reciclagem'),
+    (2, 'Energia'),
+    (3, 'Água'),
+    (4, 'Mobilidade'),
+    (5, 'Alimentação')
+on duplicate key update nome = values(nome);
