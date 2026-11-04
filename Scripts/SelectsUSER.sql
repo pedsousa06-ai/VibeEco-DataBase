@@ -379,5 +379,3 @@ call procListarPostViaId(1);
 -- drop procedure procListarComentariosByIdpostComentario;
 #Permite apagar uma view no banco
 -- drop view vwPostCurtidas;
-
-select * from tbl_anexo;
