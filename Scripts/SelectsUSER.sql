@@ -49,6 +49,73 @@ create or replace view vwPostCurtidas as
     tbl_post.data_publicacao
 	order by qtde_curtida desc;
     
+create or replace view vwRanking as
+	select
+		tbl_usuario.id 				AS id,
+		tbl_usuario.nome	 		as nome_usuario,
+		tbl_usuario.foto			as foto_usuario,
+		tbl_usuario.total_xp 		as xp_usuario,
+        tbl_escolaridade.nome		as escolaridade,
+        tbl_instituicao.nome		as instituicao,
+        tbl_level_user.nome			as nome_level,
+        tbl_level_user.numero_level		as nivel
+	from tbl_usuario
+		inner join tbl_escolaridade
+			on tbl_usuario.id_escolaridade = tbl_escolaridade.id
+		inner join tbl_instituicao
+			on tbl_usuario.id_instituicao = tbl_instituicao.id
+		inner join tbl_level_user
+			on tbl_usuario.id_level = tbl_level_user.id
+	GROUP BY 
+    tbl_usuario.id,
+    tbl_usuario.nome,
+    tbl_usuario.foto,
+    tbl_usuario.total_xp,
+    tbl_escolaridade.nome,
+    tbl_level_user.nome,
+    tbl_level_user.numero_level
+	order by xp_usuario desc;
+    
+DELIMITER $$
+CREATE PROCEDURE procListarDadosInicio(IN p_id_usuario INT)
+BEGIN
+	select
+		tbl_usuario.id 					AS id,
+		tbl_usuario.nome	 			as nome_usuario,
+		tbl_usuario.foto				as foto_usuario,
+		tbl_usuario.coins				as coins_usuario,
+		
+        level_atual.nome                    AS nome_level,
+        level_atual.numero_level            AS nivel,
+        tbl_usuario.total_xp           		AS xp_usuario,
+
+        level_proximo.numero_level          AS proximo_nivel,
+        level_proximo.nome                  AS nome_proximo_level,
+        level_proximo.xp_necessario         AS xp_proximo_level,
+
+        IF(level_proximo.id IS NULL, 0, -- -> Caso o usuario atingiu o level maximo, o valor sera nulo
+			-- GREATEST(..., 0) garante que nunca fique negativo.
+           GREATEST(level_proximo.xp_necessario - tbl_usuario.total_xp, 0)) AS xp_faltante,
+
+        IF(level_proximo.id IS NULL, 100,
+			-- LEAST(100, ...) impede que a barra passe de 100% ROUND -> Precisao de uma casa decimal
+           LEAST(100, ROUND(
+               (tbl_usuario.total_xp - level_atual.xp_necessario) /
+               (level_proximo.xp_necessario - level_atual.xp_necessario) * 100, 1
+           ))) AS progresso_percentual
+
+		FROM tbl_usuario
+			-- Retorna somente o que esta relacionado, apelidamos a tbl_level_user como level_atual
+			INNER JOIN tbl_level_user AS level_atual
+				ON tbl_usuario.id_level = level_atual.id
+			-- Retorna tanto o que esta relacionado quanto o que não esta, apelidamos a tbl_level_user como level_proximo
+			LEFT JOIN tbl_level_user AS level_proximo
+				ON level_proximo.numero_level = level_atual.numero_level + 1
+		WHERE tbl_usuario.id = 1;
+END	$$
+DELIMITER;
+
+    
  
     
 -- Seleciona todos os comentarios recentes do post através do id

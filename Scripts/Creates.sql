@@ -374,6 +374,8 @@ CREATE TABLE IF NOT EXISTS tbl_usuario_missao(
         references tbl_missao(id)
 );
 
+ALTER TABLE tbl_usuario_missao ADD COLUMN progresso int not null default 0;
+
 
 CREATE TABLE IF NOT EXISTS tbl_usuario_premiacao(
     id int not null primary key auto_increment,
