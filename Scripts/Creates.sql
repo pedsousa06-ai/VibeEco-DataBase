@@ -525,5 +525,3 @@ CREATE TABLE IF NOT EXISTS tbl_recompensa_anexo(
 -- ============================================================
 
 show tables;
-
-desc tbl_conteudo_educativo_anexo;
