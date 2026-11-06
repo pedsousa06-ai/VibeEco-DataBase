@@ -163,8 +163,8 @@ insert into tbl_missao (
     'Separe corretamente os materiais recicláveis do lixo comum.',
     50,
     100,
-    '2026-10-01',
-    '2026-10-31',
+    '2026-11-01',
+    '2026-11-30',
     1
 ),
 (
@@ -494,7 +494,7 @@ insert into tbl_usuario_missao (
 ),
 (
     2,
-    2,
+    3,
     'EM_ANDAMENTO',
     null
 );

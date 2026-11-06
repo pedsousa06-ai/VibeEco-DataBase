@@ -76,47 +76,103 @@ create or replace view vwRanking as
     tbl_level_user.numero_level
 	order by xp_usuario desc;
     
+DROP PROCEDURE IF EXISTS procListarMissaoEmAndamento;
+DELIMITER $$
+CREATE PROCEDURE procListarMissaoEmAndamento(IN p_id_usuario INT)
+BEGIN
+    SELECT
+        tbl_usuario_missao.id                AS id_usuario_missao,
+        tbl_usuario_missao.id_usuario        AS id_usuario,
+        tbl_missao.id                        AS id_missao,
+        tbl_missao.nome                      AS nome_missao,
+        tbl_missao.coins                     AS qtde_coins,
+        tbl_missao.total_xp_missao           AS qtde_xp,
+        tbl_usuario_missao.progresso         AS progresso,
+        GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias,
+        tbl_dificuldade.nome                 AS nome_dificuldade
+
+    FROM tbl_usuario_missao
+        INNER JOIN tbl_missao
+            ON tbl_missao.id = tbl_usuario_missao.id_missao
+        INNER JOIN tbl_dificuldade
+            ON tbl_dificuldade.id = tbl_missao.id_dificuldade
+
+    WHERE tbl_usuario_missao.id_usuario = p_id_usuario
+      AND tbl_usuario_missao.status = 'EM_ANDAMENTO'
+
+    ORDER BY tbl_missao.data_termino ASC;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE procAtualizarStatusMissao(IN id_usuario INT)
+BEGIN
+	select
+		tbl_usuario_missao.id			as id_usuario_missao,
+        tbl_usuario_missao.id_usuario	as id_usuario
+
+END$$
+DELIMITER;
+    
+DROP PROCEDURE IF EXISTS procListarDadosInicio;
 DELIMITER $$
 CREATE PROCEDURE procListarDadosInicio(IN p_id_usuario INT)
 BEGIN
-	select
-		tbl_usuario.id 					AS id,
-		tbl_usuario.nome	 			as nome_usuario,
-		tbl_usuario.foto				as foto_usuario,
-		tbl_usuario.coins				as coins_usuario,
-		
-        level_atual.nome                    AS nome_level,
-        level_atual.numero_level            AS nivel,
-        tbl_usuario.total_xp           		AS xp_usuario,
+    SELECT
+        tbl_usuario.id                        AS id,
+        tbl_usuario.nome                      AS nome_usuario,
+        tbl_usuario.foto                      AS foto_usuario,
+        tbl_usuario.coins                     AS coins_usuario,
+        tbl_usuario.total_xp                  AS xp_usuario,
 
-        level_proximo.numero_level          AS proximo_nivel,
-        level_proximo.nome                  AS nome_proximo_level,
-        level_proximo.xp_necessario         AS xp_proximo_level,
+        level_atual.nome                      AS nome_level,
+        level_atual.numero_level              AS nivel_atual,
+        level_proximo.numero_level            AS proximo_nivel,
+        level_proximo.nome                    AS nome_proximo_level,
+        level_proximo.xp_necessario           AS xp_proximo_level,
 
-        IF(level_proximo.id IS NULL, 0, -- -> Caso o usuario atingiu o level maximo, o valor sera nulo
-			-- GREATEST(..., 0) garante que nunca fique negativo.
+        -- GREATEST() -> não permite que o valor fique negativo
+        IF(level_proximo.id IS NULL, 0,
            GREATEST(level_proximo.xp_necessario - tbl_usuario.total_xp, 0)) AS xp_faltante,
 
+        -- LEAST() -> limita o valor a no máximo 100
+        -- ROUND() -> uma casa decimal
         IF(level_proximo.id IS NULL, 100,
-			-- LEAST(100, ...) impede que a barra passe de 100% ROUND -> Precisao de uma casa decimal
            LEAST(100, ROUND(
                (tbl_usuario.total_xp - level_atual.xp_necessario) /
                (level_proximo.xp_necessario - level_atual.xp_necessario) * 100, 1
-           ))) AS progresso_percentual
+           ))) AS progresso_percentual,
 
-		FROM tbl_usuario
-			-- Retorna somente o que esta relacionado, apelidamos a tbl_level_user como level_atual
-			INNER JOIN tbl_level_user AS level_atual
-				ON tbl_usuario.id_level = level_atual.id
-			-- Retorna tanto o que esta relacionado quanto o que não esta, apelidamos a tbl_level_user como level_proximo
-			LEFT JOIN tbl_level_user AS level_proximo
-				ON level_proximo.numero_level = level_atual.numero_level + 1
-		WHERE tbl_usuario.id = 1;
-END	$$
-DELIMITER;
+        -- Missões e desafios por status
+        (SELECT COUNT(*) FROM tbl_usuario_missao AS usuario_missao
+          WHERE usuario_missao.id_usuario = tbl_usuario.id
+            AND usuario_missao.status = 'EM_ANDAMENTO') AS qtd_missoes_em_andamento,
 
-    
- 
+        (SELECT COUNT(*) FROM tbl_usuario_missao AS usuario_missao
+          WHERE usuario_missao.id_usuario = tbl_usuario.id
+            AND usuario_missao.status = 'CONCLUIDA') AS qtd_missoes_concluidas,
+
+        (SELECT COUNT(*) FROM tbl_usuario_desafio AS usuario_desafio
+          WHERE usuario_desafio.id_usuario = tbl_usuario.id
+            AND usuario_desafio.status = 'EM_ANDAMENTO') AS qtd_desafios_ativos,
+
+        -- Posição no ranking: 1 + quantos têm mais XP
+        (SELECT COUNT(*) + 1 FROM tbl_usuario AS outros_usuarios
+          WHERE outros_usuarios.total_xp > tbl_usuario.total_xp) AS posicao_ranking,
+
+        -- Top X%: posição * 100 / total de usuários
+        (SELECT ROUND((COUNT(*) + 1) * 100 / (SELECT COUNT(*) FROM tbl_usuario), 0)
+           FROM tbl_usuario AS outros_usuarios
+          WHERE outros_usuarios.total_xp > tbl_usuario.total_xp) AS ranking_top_percentual
+
+    FROM tbl_usuario
+        INNER JOIN tbl_level_user AS level_atual
+            ON tbl_usuario.id_level = level_atual.id
+        LEFT JOIN tbl_level_user AS level_proximo
+            ON level_proximo.numero_level = level_atual.numero_level + 1
+    WHERE tbl_usuario.id = p_id_usuario;
+END $$
+DELIMITER ;
     
 -- Seleciona todos os comentarios recentes do post através do id
 # Permite definir um delimitador de término da procedure
@@ -437,7 +493,7 @@ DELIMITER ;
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarByIdPostAnexos(1);
+call procListarDadosInicio(1);
 call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);
