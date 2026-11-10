@@ -532,3 +532,5 @@ CREATE TABLE IF NOT EXISTS tbl_recompensa_anexo(
 -- ============================================================
 
 show tables;
+
+desc tbl_usuario_premiacao;
