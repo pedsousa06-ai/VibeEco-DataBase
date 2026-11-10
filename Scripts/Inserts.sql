@@ -1,58 +1,50 @@
--- ===========================================================
--- ************ Inserindo Dados Nas Tabelas ******************
--- ===========================================================
-
 
 -- ============================================================
--- 1. TABELAS DE SUPORTE / DOMÍNIO
+-- TABELAS DE SUPORTE / DOMÍNIO
 -- ============================================================
 
-insert into tbl_escolaridade (nome) values
-('Ensino Médio Completo'),
-('Ensino Superior Incompleto'),
-('Ensino Fundamental Completo');
+-- ESCOLARIDADE
+INSERT INTO tbl_escolaridade (nome) VALUES
+('Ensino Fundamental'),
+('Ensino Médio');
 
+-- STATUS
+INSERT INTO tbl_status (is_active) VALUES
+(TRUE),
+(FALSE);
 
-insert into tbl_status (is_active) values
-(true),
-(false),
-(true);
+-- NÍVEL DE ACESSO
+INSERT INTO tbl_nivel_acesso (nivel) VALUES
+('Administrador'),
+('Usuário');
 
-insert into tbl_nivel_acesso (nivel) values
-('USUARIO'),
-('ADMIN'),
-('MODERADOR');
-
-
-insert into tbl_level_user (nome, numero_level, xp_necessario) values
+-- LEVEL USER
+INSERT INTO tbl_level_user (nome, numero_level, xp_necessario) VALUES
 ('Iniciante', 1, 0),
-('Ambientalista', 2, 500),
-('Guardião Verde', 3, 1000);
+('Intermediário', 2, 500);
 
+-- INSTITUIÇÃO
+INSERT INTO tbl_instituicao (nome, descricao) VALUES
+('Escola Estadual São Paulo', 'Instituição de ensino estadual.'),
+('Colégio VibeEco', 'Instituição parceira da plataforma VibeEco.');
 
-insert into tbl_instituicao (nome, descricao) values
-('SENAI Jandira', 'Instituição de ensino profissionalizante.'),
-('Faculdade de Tecnologia', 'Instituição de ensino superior.'),
-('Escola Municipal Verde', 'Instituição de ensino básico.');
-
-
-insert into tbl_categoria (nome) values
+-- CATEGORIA
+INSERT INTO tbl_categoria (nome) VALUES
 ('Reciclagem'),
-('Economia de Água'),
-('Energia');
+('Sustentabilidade');
 
-
-insert into tbl_dificuldade (nome) values
+-- DIFICULDADE
+INSERT INTO tbl_dificuldade (nome) VALUES
 ('Fácil'),
-('Médio'),
-('Difícil');
+('Médio');
 
 
 -- ============================================================
--- 2. USUÁRIOS
+-- USUÁRIO
 -- ============================================================
 
-insert into tbl_usuario (
+-- USUÁRIO
+INSERT INTO tbl_usuario (
     nome,
     email,
     senha,
@@ -64,127 +56,105 @@ insert into tbl_usuario (
     id_status,
     id_instituicao,
     id_nivel_acesso,
-    id_level
-) values
+    id_level,
+    exibir_ranking
+) VALUES
 (
-    'Lucas Kolle',
-    'lucas@vibeeco.com',
-    'senha_hash_123',
-    'https://exemplo.com/fotos/lucas.jpg',
+    'Lucas Oliveira',
+    'lucas.oliveira@email.com',
+    'senha123',
+    'https://vibeeco.com/fotos/lucas.png',
     350,
-    120,
-    '2026-10-06 08:30:00',
+    100,
+    '2026-11-10 08:00:00',
     1,
     1,
-    1,
-    1,
-    1
-),
-(
-    'Ana Silva',
-    'ana@vibeeco.com',
-    'senha_hash_456',
-    'https://exemplo.com/fotos/ana.jpg',
-    850,
-    300,
-    '2026-10-06 09:15:00',
-    2,
     1,
     2,
     1,
-    2
+    TRUE
 ),
 (
-    'Pedro Souza',
-    'pedro@vibeeco.com',
-    'senha_hash_789',
-    'https://exemplo.com/fotos/pedro.jpg',
-    1200,
-    450,
-    '2026-10-06 10:00:00',
-    3,
+    'Mariana Santos',
+    'mariana.santos@email.com',
+    'senha456',
+    'https://vibeeco.com/fotos/mariana.png',
+    700,
+    250,
+    '2026-11-10 08:30:00',
+    2,
     1,
-    3,
-    1,
-    3
+    2,
+    2,
+    2,
+    TRUE
 );
 
-
-insert into tbl_usuario_adm (
+-- USUÁRIO ADMINISTRADOR
+INSERT INTO tbl_usuario_adm (
     email,
     senha,
     id_nivel_acesso
-) values
+) VALUES
 (
-    'admin@vibeeco.com',
-    'senha_admin_123',
-    2
+    'admin1@vibeeco.com',
+    'admin123',
+    1
 ),
 (
-    'gestor@vibeeco.com',
-    'senha_gestor_456',
-    2
-),
-(
-    'moderador@vibeeco.com',
-    'senha_moderador_789',
-    3
+    'admin2@vibeeco.com',
+    'admin456',
+    1
 );
 
 
 -- ============================================================
--- 3. OFENSIVA
+-- OFENSIVA
 -- ============================================================
 
-insert into tbl_ofensiva (
+-- OFENSIVA
+INSERT INTO tbl_ofensiva (
     id_usuario,
     data_ofensiva,
     concluido
-) values
+) VALUES
 (
     1,
-    '2026-10-06',
-    true
+    '2026-11-09',
+    TRUE
 ),
 (
     2,
-    '2026-10-06',
-    true
-),
-(
-    3,
-    '2026-10-06',
-    false
+    '2026-11-09',
+    FALSE
 );
 
 
 -- ============================================================
--- 4. ANEXOS
+-- ANEXOS
 -- ============================================================
 
-insert into tbl_anexo (
+-- ANEXO
+INSERT INTO tbl_anexo (
     nome,
     endereco_url
-) values
+) VALUES
 (
-    'Imagem sobre reciclagem',
-    'https://exemplo.com/anexos/reciclagem.jpg'
+    'Imagem de reciclagem',
+    'https://vibeeco.com/anexos/reciclagem.png'
 ),
 (
-    'Imagem sobre economia de água',
-    'https://exemplo.com/anexos/agua.jpg'
-),
-(
-    'Imagem sobre energia limpa',
-    'https://exemplo.com/anexos/energia.jpg'
+    'Imagem de sustentabilidade',
+    'https://vibeeco.com/anexos/sustentabilidade.png'
 );
 
 
 -- ============================================================
--- 5. MISSÕES
+-- MISSÕES, DESAFIOS E CONTEÚDOS
 -- ============================================================
 
-insert into tbl_missao (
+-- MISSÃO
+INSERT INTO tbl_missao (
     nome,
     descricao,
     coins,
@@ -192,10 +162,10 @@ insert into tbl_missao (
     data_inicio,
     data_termino,
     id_dificuldade
-) values
+) VALUES
 (
     'Separe seu lixo',
-    'Separe corretamente os materiais recicláveis do lixo comum.',
+    'Separe corretamente os materiais recicláveis.',
     50,
     100,
     '2026-11-01',
@@ -204,577 +174,351 @@ insert into tbl_missao (
 ),
 (
     'Economize água',
-    'Reduza o consumo de água durante suas atividades diárias.',
+    'Pratique ações para reduzir o consumo de água.',
     100,
     200,
-    '2026-10-01',
-    '2026-10-31',
-    2
-),
-(
-    'Apague as luzes',
-    'Desligue as luzes ao sair dos ambientes.',
-    75,
-    150,
     '2026-11-01',
     '2026-11-30',
-    3
+    2
 );
 
-
--- ============================================================
--- 6. DESAFIOS
--- ============================================================
-
-insert into tbl_desafio (
+-- DESAFIO
+INSERT INTO tbl_desafio (
     nome,
     descricao,
     super_coins,
     data_inicio,
     data_termino,
     id_dificuldade
-) values
+) VALUES
 (
-    'Desafio da Reciclagem',
-    'Recicle materiais durante sete dias consecutivos.',
+    'Semana sem plástico',
+    'Evite utilizar produtos descartáveis durante uma semana.',
     150,
-    '2026-10-01',
-    '2026-10-31',
+    '2026-11-01',
+    '2026-11-07',
     1
 ),
 (
-    'Desafio da Água',
-    'Economize água durante quinze dias.',
+    'Plantando o futuro',
+    'Plante uma árvore e registre sua atividade.',
     300,
-    '2026-10-01',
-    '2026-10-31',
-    2
-),
-(
-    'Desafio da Energia',
-    'Reduza o consumo de energia durante uma semana.',
-    200,
     '2026-11-01',
     '2026-11-30',
-    3
+    2
 );
 
-
--- ============================================================
--- 7. CONTEÚDO EDUCATIVO
--- ============================================================
-
-insert into tbl_conteudo_educativo (
+-- CONTEÚDO EDUCATIVO
+INSERT INTO tbl_conteudo_educativo (
     nome,
     descricao,
-    img
-) values
+    img,
+    qtde_xp
+) VALUES
 (
-    'Como reciclar corretamente',
-    'Aprenda como separar corretamente os materiais recicláveis.',
-    'https://exemplo.com/img/reciclagem.jpg'
+    'A importância da reciclagem',
+    'Aprenda como a reciclagem contribui para o meio ambiente.',
+    'https://vibeeco.com/conteudos/reciclagem.png',
+    50
 ),
 (
-    'Como economizar água',
-    'Confira dicas para reduzir o consumo de água em casa.',
-    'https://exemplo.com/img/economia-agua.jpg'
-),
-(
-    'Energia consciente',
-    'Conheça formas de economizar energia no dia a dia.',
-    'https://exemplo.com/img/energia.jpg'
+    'Consumo consciente de água',
+    'Entenda a importância de economizar água.',
+    'https://vibeeco.com/conteudos/agua.png',
+    75
 );
 
-
--- ============================================================
--- 8. RECOMPENSAS
--- ============================================================
-
-insert into tbl_recompensa (
+-- RECOMPENSA
+INSERT INTO tbl_recompensa (
     nome,
     descricao,
     valor,
     data_inicio,
     data_termino
-) values
+) VALUES
 (
-    'Caneca Sustentável',
-    'Caneca reutilizável personalizada VibeEco.',
-    500,
-    '2026-10-01',
+    'Caneca ecológica',
+    'Caneca reutilizável produzida com material sustentável.',
+    100,
+    '2026-11-01',
     '2026-12-31'
 ),
 (
-    'Ecobag VibeEco',
+    'Ecobag',
     'Sacola reutilizável para substituir sacolas plásticas.',
-    800,
-    '2026-10-01',
-    '2026-12-31'
-),
-(
-    'Garrafa Reutilizável',
-    'Garrafa para reduzir o uso de copos descartáveis.',
-    650,
-    '2026-10-01',
+    200,
+    '2026-11-01',
     '2026-12-31'
 );
 
-
--- ============================================================
--- 9. CONQUISTAS
--- ============================================================
-
-insert into tbl_conquista (
+-- CONQUISTA
+INSERT INTO tbl_conquista (
     nome,
     descricao,
     img
-) values
+) VALUES
 (
-    'Primeira Missão',
+    'Primeiro passo',
     'Conclua sua primeira missão na plataforma.',
-    'https://exemplo.com/conquistas/primeira-missao.jpg'
+    'https://vibeeco.com/conquistas/primeiro-passo.png'
 ),
 (
-    'Eco Iniciante',
-    'Acumule seus primeiros 500 pontos de experiência.',
-    'https://exemplo.com/conquistas/eco-iniciante.jpg'
-),
-(
-    'Protetor da Água',
-    'Conclua uma atividade relacionada à economia de água.',
-    'https://exemplo.com/conquistas/protetor-agua.jpg'
+    'Amigo do planeta',
+    'Conclua cinco atividades sustentáveis.',
+    'https://vibeeco.com/conquistas/amigo-planeta.png'
 );
 
 
 -- ============================================================
--- 10. MISSÃO + CATEGORIA
+-- RELACIONAMENTOS DE MISSÃO, DESAFIO E CONTEÚDO
 -- ============================================================
 
-insert into tbl_missao_categoria (
+-- MISSÃO CATEGORIA
+INSERT INTO tbl_missao_categoria (
     id_missao,
     id_categoria
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
+) VALUES
+(1, 1),
+(2, 2);
 
-
--- ============================================================
--- 11. DESAFIO + CATEGORIA
--- ============================================================
-
-insert into tbl_desafio_categoria (
+-- DESAFIO CATEGORIA
+INSERT INTO tbl_desafio_categoria (
     id_desafio,
     id_categoria
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
+) VALUES
+(1, 1),
+(2, 2);
 
-
--- ============================================================
--- 12. CONTEÚDO EDUCATIVO + CATEGORIA
--- ============================================================
-
-insert into tbl_conteudo_educativo_categoria (
+-- CONTEÚDO EDUCATIVO CATEGORIA
+INSERT INTO tbl_conteudo_educativo_categoria (
     id_conteudo_educativo,
     id_categoria
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
+) VALUES
+(1, 1),
+(2, 2);
 
 
 -- ============================================================
--- 13. FEED / POSTS
+-- FEED E INTERAÇÕES SOCIAIS
 -- ============================================================
 
-insert into tbl_post (
+-- POST
+INSERT INTO tbl_post (
     id_usuario,
     descricao,
     data_publicacao
-) values
+) VALUES
 (
     1,
-    'Hoje completei minha primeira missão sustentável!',
-    now()
+    'Hoje comecei a separar corretamente os materiais recicláveis!',
+    '2026-11-09 10:00:00'
 ),
 (
     2,
-    'Comecei o desafio de economia de água.',
-    now()
-),
-(
-    3,
-    'Estou aprendendo a economizar energia.',
-    now()
+    'Estou participando do desafio Semana sem plástico!',
+    '2026-11-09 11:30:00'
 );
 
-
--- ============================================================
--- 14. POST + ANEXO
--- ============================================================
-
-insert into tbl_post_anexo (
-    id_post,
-    id_anexo
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
-
-
-insert into tbl_post_categoria (
+-- POST CATEGORIA
+INSERT INTO tbl_post_categoria (
     id_post,
     id_categoria
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
+) VALUES
+(1, 1),
+(2, 2);
 
+-- POST ANEXO
+INSERT INTO tbl_post_anexo (
+    id_post,
+    id_anexo
+) VALUES
+(1, 1),
+(2, 2);
 
--- ============================================================
--- 15. CURTIDAS
--- ============================================================
+-- POST CURTIDA
+INSERT INTO tbl_post_curtida (
+    id_usuario,
+    id_post
+) VALUES
+(1, 2),
+(2, 1);
 
-insert into tbl_post_curtida (
+-- POST COMENTÁRIO
+INSERT INTO tbl_post_comentario (
     id_usuario,
     id_post,
-    data_curtida
-) values
+    comentario
+) VALUES
+(
+    1,
+    2,
+    'Muito interessante esse desafio!'
+),
 (
     2,
     1,
-    now()
-),
-(
-    3,
-    2,
-    now()
-),
-(
-    1,
-    3,
-    now()
+    'Excelente iniciativa!'
 );
 
 
 -- ============================================================
--- 16. COMENTÁRIOS
+-- PREMIAÇÃO
 -- ============================================================
 
-insert into tbl_post_comentario (
-    id_usuario,
-    id_post,
-    comentario,
-    data_comentario
-) values
-(
-    2,
-    1,
-    'Muito legal! Também vou participar.',
-    now()
-),
-(
-    3,
-    2,
-    'Boa! Economizar água é muito importante.',
-    now()
-),
-(
-    1,
-    3,
-    'Ótima iniciativa! Vou fazer também.',
-    now()
-);
-
-
--- ============================================================
--- 17. PREMIAÇÃO
--- ============================================================
-
-insert into tbl_premiacao (
+-- PREMIAÇÃO
+INSERT INTO tbl_premiacao (
     nome,
     descricao,
     codigo_rastreio,
     motivo_premiacao
-) values
+) VALUES
 (
-    'Kit Eco',
-    'Kit sustentável entregue ao usuário.',
-    'BR123456789',
-    'Destaque mensal de sustentabilidade'
+    'Destaque do mês',
+    'Premiação para o usuário com maior participação.',
+    'RASTREIO001',
+    'Participação ativa nas atividades.'
 ),
 (
-    'Kit Verde',
-    'Kit com produtos reutilizáveis.',
-    'BR987654321',
-    'Maior pontuação da semana'
-),
-(
-    'Kit Sustentável',
-    'Conjunto de itens reutilizáveis.',
-    'BR456789123',
-    'Participação em ações ambientais'
+    'Aluno sustentável',
+    'Reconhecimento por boas práticas ambientais.',
+    'RASTREIO002',
+    'Destaque em sustentabilidade.'
 );
 
 
 -- ============================================================
--- 18. NOTIFICAÇÕES
+-- NOTIFICAÇÕES
 -- ============================================================
 
-insert into tbl_notificacao (
+-- NOTIFICAÇÃO
+INSERT INTO tbl_notificacao (
     id_usuario,
     titulo,
     mensagem,
-    lida,
-    data_criacao
-) values
+    lida
+) VALUES
 (
     1,
-    'Missão concluída',
-    'Parabéns! Você concluiu sua missão.',
-    false,
-    now()
+    'Nova missão disponível',
+    'Uma nova missão foi adicionada à plataforma!',
+    FALSE
 ),
 (
     2,
-    'Novo desafio disponível',
-    'Um novo desafio de sustentabilidade está disponível.',
-    false,
-    now()
-),
-(
-    3,
-    'Nova conquista',
-    'Você desbloqueou uma conquista.',
-    false,
-    now()
+    'Desafio concluído',
+    'Continue participando dos desafios sustentáveis!',
+    TRUE
 );
 
 
 -- ============================================================
--- 19. USUÁRIO + MISSÃO
+-- TABELAS DE ASSOCIAÇÃO COM CONTROLE DE ESTADO
 -- ============================================================
 
-insert into tbl_usuario_missao (
+-- USUÁRIO MISSÃO
+INSERT INTO tbl_usuario_missao (
     id_usuario,
     id_missao,
     status,
-    data_conclusao
-) values
+    data_conclusao,
+    progresso
+) VALUES
 (
     1,
     1,
     'CONCLUIDA',
-    current_date()
+    '2026-11-09 15:00:00',
+    100
 ),
 (
     2,
     2,
     'EM_ANDAMENTO',
-    null
-),
-(
-    3,
-    3,
-    'EM_ANDAMENTO',
-    null
+    NULL,
+    50
 );
 
-
--- ============================================================
--- 20. USUÁRIO + PREMIAÇÃO
--- ============================================================
-
-insert into tbl_usuario_premiacao (
+-- USUÁRIO PREMIAÇÃO
+INSERT INTO tbl_usuario_premiacao (
     id_usuario,
     id_premiacao
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
+) VALUES
+(1, 1),
+(2, 2);
 
-
--- ============================================================
--- 21. USUÁRIO + DESAFIO
--- ============================================================
-
-insert into tbl_usuario_desafio (
+-- USUÁRIO DESAFIO
+INSERT INTO tbl_usuario_desafio (
     id_usuario,
     id_desafio,
     status,
     data_conclusao
-) values
+) VALUES
 (
     1,
     1,
     'CONCLUIDO',
-    current_timestamp()
+    '2026-11-07 18:00:00'
 ),
 (
     2,
     2,
     'EM_ANDAMENTO',
-    null
-),
-(
-    3,
-    3,
-    'EM_ANDAMENTO',
-    null
+    NULL
 );
 
-
--- ============================================================
--- 22. USUÁRIO + RECOMPENSA
--- ============================================================
-
-insert into tbl_usuario_recompensa (
+-- USUÁRIO RECOMPENSA
+INSERT INTO tbl_usuario_recompensa (
     id_usuario,
     id_recompensa,
-    data_resgate,
     codigo_resgate
-) values
+) VALUES
 (
     1,
     1,
-    '2026-10-06 16:00:00',
     'RESGATE001'
 ),
 (
     2,
     2,
-    '2026-10-06 16:30:00',
     'RESGATE002'
-),
-(
-    3,
-    3,
-    '2026-10-06 17:00:00',
-    'RESGATE003'
 );
 
-
--- ============================================================
--- 23. USUÁRIO + CONTEÚDO EDUCATIVO
--- ============================================================
-
-insert into tbl_usuario_conteudo_educativo (
+-- USUÁRIO CONTEÚDO EDUCATIVO
+INSERT INTO tbl_usuario_conteudo_educativo (
     id_usuario,
     id_conteudo_educativo,
-    concluido,
-    data_acesso
-) values
+    concluido
+) VALUES
 (
     1,
     1,
-    true,
-    '2026-10-06 17:00:00'
+    TRUE
 ),
 (
     2,
     2,
-    false,
-    '2026-10-06 17:30:00'
-),
-(
-    3,
-    3,
-    true,
-    '2026-10-06 18:00:00'
+    FALSE
 );
 
-
--- ============================================================
--- 24. USUÁRIO + CONQUISTA
--- ============================================================
-
-insert into tbl_usuario_conquista (
+-- USUÁRIO CONQUISTA
+INSERT INTO tbl_usuario_conquista (
     id_usuario,
-    id_conquista,
-    data_conquista
-) values
-(
-    1,
-    1,
-    '2026-10-06 18:00:00'
-),
-(
-    2,
-    2,
-    '2026-10-06 18:30:00'
-),
-(
-    3,
-    3,
-    '2026-10-06 19:00:00'
-);
+    id_conquista
+) VALUES
+(1, 1),
+(2, 2);
 
 
 -- ============================================================
--- 25. USUÁRIO + MISSÃO + CONTEÚDO + OFENSIVA
+-- OFENSIVA + MISSÃO + CONTEÚDO EDUCATIVO
 -- ============================================================
 
-insert into tbl_usuario_missao_usuario_conteudo_educativo_ofensiva (
+-- USUÁRIO MISSÃO + USUÁRIO CONTEÚDO EDUCATIVO + OFENSIVA
+INSERT INTO tbl_usuario_missao_usuario_conteudo_educativo_ofensiva (
     id_usuario_missao,
     id_usuario_conteudo_educativo,
     id_ofensiva
-) values
+) VALUES
 (
     1,
     1,
@@ -784,69 +528,37 @@ insert into tbl_usuario_missao_usuario_conteudo_educativo_ofensiva (
     2,
     2,
     2
-),
-(
-    3,
-    3,
-    3
 );
 
 
 -- ============================================================
--- 26. CONTEÚDO EDUCATIVO + ANEXO
+-- CONTEÚDO EDUCATIVO + ANEXO
 -- ============================================================
 
-insert into tbl_conteudo_educativo_anexo (
+-- CONTEÚDO EDUCATIVO ANEXO
+INSERT INTO tbl_conteudo_educativo_anexo (
     id_conteudo_educativo,
     id_anexo
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
+) VALUES
+(1, 1),
+(2, 2);
 
 
 -- ============================================================
--- 27. RECOMPENSA + ANEXO
+-- RECOMPENSA + ANEXO
 -- ============================================================
 
-insert into tbl_recompensa_anexo (
+-- RECOMPENSA ANEXO
+INSERT INTO tbl_recompensa_anexo (
     id_recompensa,
     id_anexo
-) values
-(
-    1,
-    1
-),
-(
-    2,
-    2
-),
-(
-    3,
-    3
-);
+) VALUES
+(1, 1),
+(2, 2);
 
 
--- 2) DIFICULDADES
-insert into tbl_dificuldade (id, nome) values
-    (1, 'Fácil'),
-    (2, 'Médio'),
-    (3, 'Difícil')
-on duplicate key update nome = values(nome);
+-- ============================================================
+-- VERIFICAR TABELAS
+-- ============================================================
 
-
--- 3) CATEGORIAS
-insert into tbl_categoria (id, nome) values
-    (1, 'Reciclagem'),
-    (2, 'Energia'),
-    (3, 'Água')
-on duplicate key update nome = values(nome);
+SHOW TABLES;
