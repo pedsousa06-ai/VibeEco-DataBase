@@ -66,8 +66,11 @@ FROM tbl_usuario as u
 WHERE u.exibir_ranking = TRUE
 ORDER BY u.total_xp DESC;
 
--- Seleciona todos os conteudos educativos do mais recente ao mais antigo que nao foram concluidos
-CREATE OR REPLACE VIEW vwConteudoEducativo AS
+-- Seleciona todos os conteudos educativos do mais recente ao mais antigo que nao foram concluidos    
+DROP PROCEDURE IF EXISTS procListarConteudoEducativoUsuario;
+DELIMITER $$
+CREATE PROCEDURE procListarConteudoEducativoUsuario(IN p_id_usuario INT)
+BEGIN
 	SELECT
 		tbl_usuario_conteudo_educativo.id AS id,
 		tbl_usuario_conteudo_educativo.id_usuario AS id_usuario,
@@ -83,12 +86,17 @@ CREATE OR REPLACE VIEW vwConteudoEducativo AS
 	FROM tbl_usuario_conteudo_educativo
 	INNER JOIN tbl_conteudo_educativo
 		ON tbl_usuario_conteudo_educativo.id_conteudo_educativo = tbl_conteudo_educativo.id
-	WHERE	tbl_usuario_conteudo_educativo.concluido = false
+	WHERE	tbl_usuario_conteudo_educativo.concluido = false AND tbl_usuario_conteudo_educativo.id_usuario = p_id_usuario
 	ORDER BY tbl_usuario_conteudo_educativo.data_acesso DESC
 	LIMIT 0, 1000;
+END $$
+DELIMITER ;
+
     
--- Seleciona todos os conteudos educativos do mais recente ao mais antigo que nao foram concluidos
-CREATE OR REPLACE VIEW vwOfensiva AS
+DROP PROCEDURE IF EXISTS procListarOfensivaUsuario;
+DELIMITER $$
+CREATE PROCEDURE procListarOfensivaUsuario(IN p_id_usuario INT)
+BEGIN
 	SELECT
 		tbl_ofensiva.id AS id,
 		tbl_ofensiva.id_usuario AS id_usuario,
@@ -100,7 +108,10 @@ CREATE OR REPLACE VIEW vwOfensiva AS
 		DATE_FORMAT(tbl_ofensiva.data_ofensiva, '%a') as dia_semana,
 		tbl_ofensiva.concluido AS status_ofensiva
 	FROM tbl_ofensiva
-	ORDER BY tbl_ofensiva.data_ofensiva ASC;
+    WHERE tbl_ofensiva.id_usuario = p_id_usuario
+    ORDER BY tbl_ofensiva.data_ofensiva ASC;
+END $$
+DELIMITER ;
     
 CREATE OR REPLACE VIEW vwDesafios AS
     SELECT
@@ -146,8 +157,6 @@ BEGIN
     ORDER BY tbl_usuario_conquista.data_conquista DESC;
 END $$
 DELIMITER ;
-    
-
     
 DROP PROCEDURE IF EXISTS procListarMissaoEmAndamento;
 DELIMITER $$
@@ -555,12 +564,10 @@ BEGIN
 END	$$
 DELIMITER ;
 
-select * from tbl_usuario_conquista;
-
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarConquistasUsuario(1);
+call procListarConteudoEducativoUsuario(2);
 call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);
@@ -568,4 +575,4 @@ call procListarPostViaId(1);
 -- drop procedure procListarPostAnexosByIdPost;
 -- drop procedure procListarComentariosByIdpostComentario;
 #Permite apagar uma view no banco
--- drop view vwPostCurtidas;
+-- drop view vwPostCurtidas

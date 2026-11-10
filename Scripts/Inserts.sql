@@ -461,13 +461,13 @@ INSERT INTO tbl_usuario_desafio (
 ),
 (
     2,
-    3,
+    2,
     'EM_ANDAMENTO',
     null
 ),
 (
     1,
-    3,
+    2,
     'EM_ANDAMENTO',
     null
 );
@@ -523,8 +523,8 @@ INSERT INTO tbl_usuario_conquista (
     '2026-10-06 18:30:00'
 ),
 (
-    3,
-    3,
+    2,
+    2,
     '2026-10-06 19:00:00'
 );
 
