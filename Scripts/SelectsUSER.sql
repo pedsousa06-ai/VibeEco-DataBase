@@ -27,6 +27,26 @@ GROUP BY
 ORDER BY tbl_post.id DESC
 LIMIT 0, 1000;
 
+-- Seleciona todos os conteudos educativos que nao foram concluidos
+CREATE OR REPLACE VIEW vwConteudoEducativo AS
+SELECT
+    tbl_usuario_conteudo_educativo.id AS id,
+    tbl_usuario_conteudo_educativo.id_usuario AS id_usuario,
+    tbl_usuario_conteudo_educativo.id_conteudo_educativo AS id_conteudo_educativo,
+    tbl_conteudo_educativo.nome AS nome_conteudo_educativo,
+    tbl_usuario_conteudo_educativo.concluido as status,
+    DATE_FORMAT(
+        tbl_usuario_conteudo_educativo.data_acesso,
+        '%d/%m/%Y %H:%i'
+    ) AS data_acesso
+FROM tbl_usuario_conteudo_educativo
+INNER JOIN tbl_conteudo_educativo
+    ON tbl_usuario_conteudo_educativo.id_conteudo_educativo = tbl_conteudo_educativo.id
+ORDER BY tbl_usuario_conteudo_educativo.data_acesso DESC
+LIMIT 0, 1000;
+
+select * from tbl_usuario_conteudo_educativo where id = 1;
+
 -- Seleciona os post mais relevante utilizando como critério de filtro a quantidade de curtidas
 create or replace view vwPostCurtidas as
 	select
@@ -49,32 +69,22 @@ create or replace view vwPostCurtidas as
     tbl_post.data_publicacao
 	order by qtde_curtida desc;
     
-create or replace view vwRanking as
-	select
-		tbl_usuario.id 				AS id,
-		tbl_usuario.nome	 		as nome_usuario,
-		tbl_usuario.foto			as foto_usuario,
-		tbl_usuario.total_xp 		as xp_usuario,
-        tbl_escolaridade.nome		as escolaridade,
-        tbl_instituicao.nome		as instituicao,
-        tbl_level_user.nome			as nome_level,
-        tbl_level_user.numero_level		as nivel
-	from tbl_usuario
-		inner join tbl_escolaridade
-			on tbl_usuario.id_escolaridade = tbl_escolaridade.id
-		inner join tbl_instituicao
-			on tbl_usuario.id_instituicao = tbl_instituicao.id
-		inner join tbl_level_user
-			on tbl_usuario.id_level = tbl_level_user.id
-	GROUP BY 
-    tbl_usuario.id,
-    tbl_usuario.nome,
-    tbl_usuario.foto,
-    tbl_usuario.total_xp,
-    tbl_escolaridade.nome,
-    tbl_level_user.nome,
-    tbl_level_user.numero_level
-	order by xp_usuario desc;
+CREATE OR REPLACE VIEW vwRanking AS
+SELECT
+    u.id             AS id,
+    u.nome           AS nome_usuario,
+    u.foto           AS foto_usuario,
+    u.total_xp       AS xp_usuario,
+    e.nome           AS escolaridade,
+    i.nome           AS instituicao,
+    l.nome           AS nome_level,
+    l.numero_level   AS nivel
+FROM tbl_usuario as u
+    INNER JOIN tbl_escolaridade as e ON u.id_escolaridade = e.id
+    INNER JOIN tbl_instituicao  as i ON u.id_instituicao  = i.id
+    INNER JOIN tbl_level_user   as l ON u.id_level        = l.id
+WHERE u.exibir_ranking = TRUE
+ORDER BY u.total_xp DESC;
     
 DROP PROCEDURE IF EXISTS procListarMissaoEmAndamento;
 DELIMITER $$
@@ -98,21 +108,13 @@ BEGIN
             ON tbl_dificuldade.id = tbl_missao.id_dificuldade
 
     WHERE tbl_usuario_missao.id_usuario = p_id_usuario
-      AND tbl_usuario_missao.status = 'EM_ANDAMENTO'
+      AND tbl_usuario_missao.status = 'EM_ANDAMENTO'       
+      AND tbl_missao.data_termino > CURDATE()
+      AND tbl_usuario_missao.progresso < 100
 
     ORDER BY tbl_missao.data_termino ASC;
 END $$
 DELIMITER ;
-
-DELIMITER $$
-CREATE PROCEDURE procAtualizarStatusMissao(IN id_usuario INT)
-BEGIN
-	select
-		tbl_usuario_missao.id			as id_usuario_missao,
-        tbl_usuario_missao.id_usuario	as id_usuario
-
-END$$
-DELIMITER;
     
 DROP PROCEDURE IF EXISTS procListarDadosInicio;
 DELIMITER $$
@@ -493,7 +495,7 @@ DELIMITER ;
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarDadosInicio(1);
+call procListarMissaoEmAndamento(2);
 call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);

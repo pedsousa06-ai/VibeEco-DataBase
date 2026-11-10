@@ -87,6 +87,9 @@ CREATE TABLE IF NOT EXISTS tbl_usuario(
         references tbl_level_user(id)
 );
 
+ALTER TABLE tbl_usuario
+ADD COLUMN exibir_ranking BOOLEAN NOT NULL DEFAULT TRUE;
+
 
 CREATE TABLE IF NOT EXISTS tbl_usuario_adm(
     id int not null primary key auto_increment,
@@ -173,6 +176,8 @@ CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo(
     descricao text,
     img text not null
 );
+
+ALTER TABLE tbl_conteudo_educativo ADD COLUMN qtde_xp int not null;
 
 
 CREATE TABLE IF NOT EXISTS tbl_recompensa(
