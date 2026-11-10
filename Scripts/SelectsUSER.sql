@@ -27,26 +27,6 @@ GROUP BY
 ORDER BY tbl_post.id DESC
 LIMIT 0, 1000;
 
--- Seleciona todos os conteudos educativos que nao foram concluidos
-CREATE OR REPLACE VIEW vwConteudoEducativo AS
-SELECT
-    tbl_usuario_conteudo_educativo.id AS id,
-    tbl_usuario_conteudo_educativo.id_usuario AS id_usuario,
-    tbl_usuario_conteudo_educativo.id_conteudo_educativo AS id_conteudo_educativo,
-    tbl_conteudo_educativo.nome AS nome_conteudo_educativo,
-    tbl_usuario_conteudo_educativo.concluido as status,
-    DATE_FORMAT(
-        tbl_usuario_conteudo_educativo.data_acesso,
-        '%d/%m/%Y %H:%i'
-    ) AS data_acesso
-FROM tbl_usuario_conteudo_educativo
-INNER JOIN tbl_conteudo_educativo
-    ON tbl_usuario_conteudo_educativo.id_conteudo_educativo = tbl_conteudo_educativo.id
-ORDER BY tbl_usuario_conteudo_educativo.data_acesso DESC
-LIMIT 0, 1000;
-
-select * from tbl_usuario_conteudo_educativo where id = 1;
-
 -- Seleciona os post mais relevante utilizando como critério de filtro a quantidade de curtidas
 create or replace view vwPostCurtidas as
 	select
@@ -85,6 +65,89 @@ FROM tbl_usuario as u
     INNER JOIN tbl_level_user   as l ON u.id_level        = l.id
 WHERE u.exibir_ranking = TRUE
 ORDER BY u.total_xp DESC;
+
+-- Seleciona todos os conteudos educativos do mais recente ao mais antigo que nao foram concluidos
+CREATE OR REPLACE VIEW vwConteudoEducativo AS
+	SELECT
+		tbl_usuario_conteudo_educativo.id AS id,
+		tbl_usuario_conteudo_educativo.id_usuario AS id_usuario,
+		tbl_usuario_conteudo_educativo.id_conteudo_educativo AS id_conteudo_educativo,
+		tbl_conteudo_educativo.nome AS nome_conteudo_educativo,
+		tbl_conteudo_educativo.qtde_xp	as xp_conteudo_educativo,
+		tbl_usuario_conteudo_educativo.concluido as status,
+		DATE_FORMAT(
+			tbl_usuario_conteudo_educativo.data_acesso,
+			'%d/%m/%Y %H:%i'
+		) AS data_acesso,
+		tbl_usuario_conteudo_educativo.tempo_acesso AS tempo_acesso_min
+	FROM tbl_usuario_conteudo_educativo
+	INNER JOIN tbl_conteudo_educativo
+		ON tbl_usuario_conteudo_educativo.id_conteudo_educativo = tbl_conteudo_educativo.id
+	WHERE	tbl_usuario_conteudo_educativo.concluido = false
+	ORDER BY tbl_usuario_conteudo_educativo.data_acesso DESC
+	LIMIT 0, 1000;
+    
+-- Seleciona todos os conteudos educativos do mais recente ao mais antigo que nao foram concluidos
+CREATE OR REPLACE VIEW vwOfensiva AS
+	SELECT
+		tbl_ofensiva.id AS id,
+		tbl_ofensiva.id_usuario AS id_usuario,
+		DATE_FORMAT(
+			tbl_ofensiva.data_ofensiva,
+			'%d/%m/%Y %H:%i'
+		) AS data_ofensiva,
+		        #Retorna o dia da semana referente a data, porém abreviado
+		DATE_FORMAT(tbl_ofensiva.data_ofensiva, '%a') as dia_semana,
+		tbl_ofensiva.concluido AS status_ofensiva
+	FROM tbl_ofensiva
+	ORDER BY tbl_ofensiva.data_ofensiva ASC;
+    
+CREATE OR REPLACE VIEW vwDesafios AS
+    SELECT
+        tbl_desafio.id AS id,
+        tbl_desafio.nome AS nome_desafio,
+        tbl_desafio.super_coins AS super_coins,
+        COUNT(tbl_usuario_desafio.id) AS qtde_participantes,
+        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_desafio
+    LEFT JOIN tbl_usuario_desafio
+        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
+	-- WHERE: filtra por uma coluna da linha (antes de agrupar)
+    WHERE tbl_desafio.data_termino >= CURDATE()
+    GROUP BY
+        tbl_desafio.id,
+        tbl_desafio.nome,
+        tbl_desafio.super_coins,
+        tbl_desafio.data_termino
+	-- HAVING: filtra por um resultado agregado (depois de agrupar)
+    HAVING COUNT(tbl_usuario_desafio.id) >= 1
+    ORDER BY qtde_participantes DESC;
+    
+DROP PROCEDURE IF EXISTS procListarConquistasUsuario;
+DELIMITER $$
+CREATE PROCEDURE procListarConquistasUsuario(IN p_id_usuario INT)
+BEGIN
+    SELECT
+        tbl_usuario_conquista.id             	AS id_usuario_conquista,
+        tbl_usuario_conquista.id_usuario     	AS id_usuario,
+        tbl_usuario_conquista.id_conquista   	AS id_conquista,
+        DATE_FORMAT(tbl_usuario_conquista.data_conquista,'%d/%m/%Y %H:%i') AS data_conquista,
+        tbl_conquista.nome             	        AS nome_conquista,
+        tbl_conquista.descricao         	  	AS descricao_conquista,
+        tbl_conquista.img         				AS img_conquista
+
+    FROM tbl_usuario_conquista
+        INNER JOIN tbl_conquista
+            ON tbl_usuario_conquista.id_conquista = tbl_conquista.id
+        INNER JOIN tbl_usuario
+            ON tbl_usuario_conquista.id_usuario = tbl_usuario.id
+
+    WHERE tbl_usuario_conquista.id_usuario = p_id_usuario
+    ORDER BY tbl_usuario_conquista.data_conquista DESC;
+END $$
+DELIMITER ;
+    
+
     
 DROP PROCEDURE IF EXISTS procListarMissaoEmAndamento;
 DELIMITER $$
@@ -492,10 +555,12 @@ BEGIN
 END	$$
 DELIMITER ;
 
+select * from tbl_usuario_conquista;
+
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarMissaoEmAndamento(2);
+call procListarConquistasUsuario(1);
 call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);

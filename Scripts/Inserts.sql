@@ -239,7 +239,7 @@ insert into tbl_desafio (
     'Recicle materiais durante sete dias consecutivos.',
     150,
     '2026-10-01',
-    '2026-10-31',
+    '2026-11-30',
     1
 ),
 (
@@ -668,12 +668,12 @@ insert into tbl_usuario_desafio (
 ),
 (
     2,
-    2,
+    3,
     'EM_ANDAMENTO',
     null
 ),
 (
-    3,
+    1,
     3,
     'EM_ANDAMENTO',
     null
@@ -751,8 +751,8 @@ insert into tbl_usuario_conquista (
 ) values
 (
     1,
-    1,
-    '2026-10-06 18:00:00'
+    2,
+    '2026-11-08 18:00:00'
 ),
 (
     2,

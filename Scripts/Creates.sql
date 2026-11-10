@@ -178,6 +178,8 @@ CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo(
 );
 
 ALTER TABLE tbl_conteudo_educativo ADD COLUMN qtde_xp int not null;
+ALTER TABLE tbl_usuario_conteudo_educativo
+ADD COLUMN tempo_acesso INT NOT NULL DEFAULT 0;
 
 
 CREATE TABLE IF NOT EXISTS tbl_recompensa(
