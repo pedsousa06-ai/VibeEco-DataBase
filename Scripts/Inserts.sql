@@ -182,6 +182,33 @@ INSERT INTO tbl_missao (
     2
 );
 
+
+-- ============================================================
+-- MISSÃO ETAPA
+-- ============================================================
+
+INSERT INTO tbl_missao_etapa (
+    id_missao,
+    titulo,
+    xp,
+    ordem
+) VALUES
+
+-- MISSÃO 1: SEPARE SEU LIXO (100 XP)
+(1, 'Identifique os materiais recicláveis da sua casa.', 20, 1),
+(1, 'Separe papel e papelão corretamente.', 20, 2),
+(1, 'Separe plásticos, vidros e metais.', 20, 3),
+(1, 'Higienize os materiais recicláveis antes do descarte.', 20, 4),
+(1, 'Descarte os materiais nos locais apropriados.', 20, 5),
+
+-- MISSÃO 2: ECONOMIZE ÁGUA (200 XP)
+(2, 'Identifique atividades que desperdiçam água no seu dia a dia.', 30, 1),
+(2, 'Reduza o tempo durante o banho.', 40, 2),
+(2, 'Feche a torneira enquanto escova os dentes.', 30, 3),
+(2, 'Reutilize água sempre que possível.', 40, 4),
+(2, 'Verifique possíveis vazamentos em sua residência.', 30, 5),
+(2, 'Pratique e mantenha hábitos de consumo consciente.', 30, 6);
+
 -- DESAFIO
 INSERT INTO tbl_desafio (
     nome,

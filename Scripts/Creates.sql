@@ -154,6 +154,17 @@ CREATE TABLE IF NOT EXISTS tbl_missao(
         references tbl_dificuldade(id)
 );
 
+CREATE TABLE IF NOT EXISTS tbl_missao_etapa(
+	id int not null primary key auto_increment,
+    id_missao int not null,
+    titulo text not null,
+    xp int not null,
+    ordem int not null,
+    
+	constraint FK_MISSAO_ETAPA
+        foreign key (id_missao)
+        references tbl_missao(id)
+);
 
 CREATE TABLE IF NOT EXISTS tbl_desafio(
     id int not null primary key auto_increment,
