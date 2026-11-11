@@ -177,7 +177,12 @@ CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo(
     img text not null
 );
 
-ALTER TABLE tbl_conteudo_educativo ADD COLUMN qtde_xp int not null;
+-- ###### ALTERANDO A TABELBA DE CONTEÚDO EDUCATIVO ######
+
+ALTER TABLE tbl_conteudo_educativo ADD COLUMN qtde_xp int not null default 0;
+
+ALTER TABLE tbl_conteudo_educativo ADD COLUMN duracao_leitura int not null;
+
 
 
 CREATE TABLE IF NOT EXISTS tbl_recompensa(
