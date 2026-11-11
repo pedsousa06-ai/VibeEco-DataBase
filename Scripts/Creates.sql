@@ -154,6 +154,8 @@ CREATE TABLE IF NOT EXISTS tbl_missao(
         references tbl_dificuldade(id)
 );
 
+alter table tbl_missao add column dica text ;
+
 CREATE TABLE IF NOT EXISTS tbl_missao_etapa(
 	id int not null primary key auto_increment,
     id_missao int not null,
