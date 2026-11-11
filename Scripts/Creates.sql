@@ -529,7 +529,6 @@ CREATE TABLE IF NOT EXISTS tbl_recompensa_anexo(
         references tbl_anexo(id)
 );
 
-
 -- ============================================================
 -- VERIFICAR TABELAS
 -- ============================================================
