@@ -1,3 +1,4 @@
+USE db_vibeEco_2026;
 
 -- ============================================================
 -- TABELAS DE SUPORTE / DOMÍNIO
@@ -153,7 +154,7 @@ INSERT INTO tbl_anexo (
 -- MISSÕES, DESAFIOS E CONTEÚDOS
 -- ============================================================
 
--- MISSÃO
+-- MISSÃO (inclui a coluna "dica", criada via ALTER TABLE)
 INSERT INTO tbl_missao (
     nome,
     descricao,
@@ -161,7 +162,8 @@ INSERT INTO tbl_missao (
     total_xp_missao,
     data_inicio,
     data_termino,
-    id_dificuldade
+    id_dificuldade,
+    dica
 ) VALUES
 (
     'Separe seu lixo',
@@ -170,7 +172,8 @@ INSERT INTO tbl_missao (
     100,
     '2026-11-01',
     '2026-11-30',
-    1
+    1,
+    'Use recipientes diferentes para cada tipo de material.'
 ),
 (
     'Economize água',
@@ -179,7 +182,8 @@ INSERT INTO tbl_missao (
     200,
     '2026-11-01',
     '2026-11-30',
-    2
+    2,
+    'Anote o consumo da sua casa durante a semana para acompanhar sua evolução.'
 );
 
 
@@ -235,24 +239,27 @@ INSERT INTO tbl_desafio (
     2
 );
 
--- CONTEÚDO EDUCATIVO
+-- CONTEÚDO EDUCATIVO (inclui "duracao_leitura", NOT NULL, criada via ALTER TABLE)
 INSERT INTO tbl_conteudo_educativo (
     nome,
     descricao,
     img,
-    qtde_xp
+    qtde_xp,
+    duracao_leitura
 ) VALUES
 (
     'A importância da reciclagem',
     'Aprenda como a reciclagem contribui para o meio ambiente.',
     'https://vibeeco.com/conteudos/reciclagem.png',
-    50
+    50,
+    5
 ),
 (
     'Consumo consciente de água',
     'Entenda a importância de economizar água.',
     'https://vibeeco.com/conteudos/agua.png',
-    75
+    75,
+    4
 );
 
 -- RECOMPENSA
@@ -392,7 +399,7 @@ INSERT INTO tbl_post_comentario (
 -- PREMIAÇÃO
 -- ============================================================
 
--- PREMIAÇÃO
+-- PREMIAÇÃO (nome limitado a varchar(20))
 INSERT INTO tbl_premiacao (
     nome,
     descricao,
@@ -490,13 +497,13 @@ INSERT INTO tbl_usuario_desafio (
     2,
     2,
     'EM_ANDAMENTO',
-    null
+    NULL
 ),
 (
     1,
     2,
     'EM_ANDAMENTO',
-    null
+    NULL
 );
 
 -- USUÁRIO RECOMPENSA
@@ -516,21 +523,24 @@ INSERT INTO tbl_usuario_recompensa (
     'RESGATE002'
 );
 
--- USUÁRIO CONTEÚDO EDUCATIVO
+-- USUÁRIO CONTEÚDO EDUCATIVO (inclui "tempo_acesso", criada via ALTER TABLE)
 INSERT INTO tbl_usuario_conteudo_educativo (
     id_usuario,
     id_conteudo_educativo,
-    concluido
+    concluido,
+    tempo_acesso
 ) VALUES
 (
     1,
     1,
-    TRUE
+    TRUE,
+    300
 ),
 (
     2,
     2,
-    FALSE
+    FALSE,
+    120
 );
 
 -- USUÁRIO CONQUISTA
@@ -538,7 +548,7 @@ INSERT INTO tbl_usuario_conquista (
     id_usuario,
     id_conquista,
     data_conquista
-) values
+) VALUES
 (
     1,
     2,
@@ -551,7 +561,7 @@ INSERT INTO tbl_usuario_conquista (
 ),
 (
     2,
-    2,
+    1,
     '2026-10-06 19:00:00'
 );
 

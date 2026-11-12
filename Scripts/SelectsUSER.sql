@@ -66,6 +66,123 @@ FROM tbl_usuario as u
 WHERE u.exibir_ranking = TRUE
 ORDER BY u.total_xp DESC;
 
+-- Seleciona todas as missoes, dando preferencia as que estao vinculadas ao usuario e logo em seguida as que nao estao
+DROP PROCEDURE IF EXISTS procListarTodasMissoes;
+DELIMITER $$
+CREATE PROCEDURE procListarTodasMissoes(IN p_id_usuario INT)
+BEGIN
+	SELECT
+		tbl_missao.id                  AS id_missao,
+        tbl_usuario_missao.id_usuario  AS id_usuario, 
+		tbl_missao.nome                AS nome_missao,
+		tbl_missao.descricao           AS descricao_missao,
+		tbl_missao.coins               AS coins_missao,
+		tbl_missao.total_xp_missao     AS xp_missao,
+		tbl_missao.id_dificuldade      AS dificuldade_missao,
+		tbl_dificuldade.nome           AS nome_dificuldade,
+		COALESCE(tbl_usuario_missao.progresso, 0)       AS progresso_missao,
+        tbl_usuario_missao.status	   AS status_missao,
+		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+	FROM tbl_missao
+	INNER JOIN tbl_dificuldade
+		ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+	LEFT JOIN tbl_usuario_missao
+		ON tbl_usuario_missao.id_missao = tbl_missao.id
+		AND tbl_usuario_missao.id_usuario = p_id_usuario
+	ORDER BY tbl_missao.data_termino DESC
+	LIMIT 0, 1000;
+END $$
+DELIMITER ;
+
+-- Seleciona todas as missoes disponiveis
+DROP PROCEDURE IF EXISTS procListarTodasMissoesDisponiveis;
+DELIMITER $$
+CREATE PROCEDURE procListarTodasMissoesDisponiveis(IN p_id_usuario INT)
+BEGIN
+	SELECT
+		tbl_missao.id                  AS id_missao,
+        tbl_usuario_missao.id_usuario  AS id_usuario,
+		tbl_missao.nome                AS nome_missao,
+		tbl_missao.descricao           AS descricao_missao,
+		tbl_missao.coins               AS coins_missao,
+		tbl_missao.total_xp_missao     AS xp_missao,
+		tbl_missao.id_dificuldade      AS dificuldade_missao,
+		tbl_dificuldade.nome           AS nome_dificuldade,
+		COALESCE(tbl_usuario_missao.progresso, 0)       AS progresso_missao,
+        tbl_usuario_missao.status	   AS status_missao,
+		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+	FROM tbl_missao
+	INNER JOIN tbl_dificuldade
+		ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+	LEFT JOIN tbl_usuario_missao
+		ON tbl_usuario_missao.id_missao = tbl_missao.id
+		AND tbl_usuario_missao.id_usuario = p_id_usuario
+	WHERE tbl_missao.data_termino > CURDATE()
+		AND (tbl_usuario_missao.status IS NULL
+		OR tbl_usuario_missao.status <> 'CONCLUIDA')
+	ORDER BY tbl_missao.data_termino DESC
+	LIMIT 0, 1000;
+END $$
+DELIMITER ;
+
+-- Seleciona todas as missoes em andamento
+DROP PROCEDURE IF EXISTS procListarTodasMissoesAndamento;
+DELIMITER $$
+CREATE PROCEDURE procListarTodasMissoesAndamento(IN p_id_usuario INT)
+BEGIN
+    SELECT
+        tbl_missao.id                  AS id_missao,
+        tbl_usuario_missao.id_usuario  AS id_usuario,
+        tbl_missao.nome                AS nome_missao,
+        tbl_missao.descricao           AS descricao_missao,
+        tbl_missao.coins               AS coins_missao,
+        tbl_missao.total_xp_missao     AS xp_missao,
+        tbl_missao.id_dificuldade      AS dificuldade_missao,
+        tbl_dificuldade.nome           AS nome_dificuldade,
+        tbl_usuario_missao.progresso   AS progresso_missao,
+        tbl_usuario_missao.status      AS status_missao,
+        GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_missao
+    INNER JOIN tbl_dificuldade
+        ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+    INNER JOIN tbl_usuario_missao
+        ON tbl_usuario_missao.id_missao = tbl_missao.id
+    WHERE tbl_usuario_missao.id_usuario = p_id_usuario
+      AND tbl_usuario_missao.status = 'EM_ANDAMENTO'
+      AND tbl_missao.data_termino >= CURDATE()
+    ORDER BY tbl_missao.data_termino DESC
+    LIMIT 0, 1000;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarTodasMissoesConcluidas;
+DELIMITER $$
+CREATE PROCEDURE procListarTodasMissoesConcluidas(IN p_id_usuario INT)
+BEGIN
+    SELECT
+        tbl_missao.id                  AS id_missao,
+        tbl_usuario_missao.id_usuario  AS id_usuario,
+        tbl_missao.nome                AS nome_missao,
+        tbl_missao.descricao           AS descricao_missao,
+        tbl_missao.coins               AS coins_missao,
+        tbl_missao.total_xp_missao     AS xp_missao,
+        tbl_missao.id_dificuldade      AS dificuldade_missao,
+        tbl_dificuldade.nome           AS nome_dificuldade,
+        tbl_usuario_missao.progresso   AS progresso_missao,
+        tbl_usuario_missao.status      AS status_missao,
+        GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_missao
+    INNER JOIN tbl_dificuldade
+        ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+    INNER JOIN tbl_usuario_missao
+        ON tbl_usuario_missao.id_missao = tbl_missao.id
+    WHERE tbl_usuario_missao.id_usuario = p_id_usuario
+      AND tbl_usuario_missao.status = 'CONCLUIDA'
+    ORDER BY tbl_missao.data_termino DESC
+    LIMIT 0, 1000;
+END $$
+DELIMITER ;
+
 -- Seleciona todos os conteudos educativos do mais recente ao mais antigo que nao foram concluidos    
 DROP PROCEDURE IF EXISTS procListarConteudoEducativoUsuario;
 DELIMITER $$
@@ -567,7 +684,7 @@ DELIMITER ;
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarConteudoEducativoUsuario(2);
+call procListarTodasMissoesDisponiveis(2);
 call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);
