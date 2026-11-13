@@ -168,6 +168,20 @@ CREATE TABLE IF NOT EXISTS tbl_missao_etapa(
         references tbl_missao(id)
 );
 
+CREATE TABLE IF NOT EXISTS tbl_usuario_etapa (
+	id int not null primary key auto_increment,
+	id_usuario int not null,
+	id_etapa int not null,
+	data_conclusao datetime not null default current_timestamp,
+
+	constraint FK_USUARIO_ETAPA_USUARIO
+		foreign key (id_usuario) references tbl_usuario(id),
+	constraint FK_USUARIO_ETAPA_ETAPA
+		foreign key (id_etapa) references tbl_missao_etapa(id),
+	constraint UQ_USUARIO_ETAPA
+		unique (id_usuario, id_etapa)
+);
+
 CREATE TABLE IF NOT EXISTS tbl_desafio(
     id int not null primary key auto_increment,
     nome varchar(100) not null,
@@ -398,6 +412,8 @@ CREATE TABLE IF NOT EXISTS tbl_usuario_missao(
 );
 
 ALTER TABLE tbl_usuario_missao ADD COLUMN progresso int not null default 0;
+ALTER TABLE tbl_usuario_missao
+ADD CONSTRAINT uq_usuario_missao UNIQUE (id_usuario, id_missao);
 
 
 CREATE TABLE IF NOT EXISTS tbl_usuario_premiacao(

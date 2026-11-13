@@ -94,6 +94,155 @@ BEGIN
 END $$
 DELIMITER ;
 
+-- Seleciona a missão pelo próprio id o id do usuário
+DROP PROCEDURE IF EXISTS procListarMissaoIdMissaoIdUsuario;
+DELIMITER $$
+CREATE PROCEDURE procListarMissaoIdMissaoIdUsuario(IN p_id_missao INT, IN p_id_usuario INT)
+BEGIN
+	SELECT
+		tbl_missao.id                  AS id_missao,
+		p_id_usuario                   AS id_usuario,
+		tbl_missao.nome                AS nome_missao,
+		tbl_missao.descricao           AS descricao_missao,
+		tbl_missao.coins               AS coins_missao,
+		tbl_missao.total_xp_missao     AS xp_missao,
+        tbl_missao.dica				   AS dica_missao,
+		tbl_missao.id_dificuldade      AS dificuldade_missao,
+		tbl_dificuldade.nome           AS nome_dificuldade,
+		COALESCE(tbl_usuario_missao.progresso, 0) AS progresso_missao,
+		tbl_usuario_missao.status      AS status_missao,
+		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+	FROM tbl_missao
+	INNER JOIN tbl_dificuldade
+		ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+	LEFT JOIN tbl_usuario_missao
+		ON tbl_usuario_missao.id_missao = tbl_missao.id
+		AND tbl_usuario_missao.id_usuario = p_id_usuario
+	WHERE tbl_missao.id = p_id_missao;
+END $$
+DELIMITER ;
+
+-- Seleciona a missão pelo próprio id
+DROP PROCEDURE IF EXISTS procListarMissaoIdMissao;
+DELIMITER $$
+CREATE PROCEDURE procListarMissaoIdMissao(IN p_id_missao INT)
+BEGIN
+	SELECT
+		tbl_usuario_missao.id          AS id,
+		tbl_usuario_missao.id_missao   AS id_missao,
+        tbl_usuario_missao.id_usuario  AS id_usuario,
+		tbl_missao.nome                AS nome_missao,
+		tbl_missao.descricao           AS descricao_missao,
+		tbl_missao.coins               AS coins_missao,
+		tbl_missao.total_xp_missao     AS xp_missao,
+        tbl_missao.dica				   AS dica_missao,
+		tbl_missao.id_dificuldade      AS dificuldade_missao,
+		tbl_dificuldade.nome           AS nome_dificuldade,
+		COALESCE(tbl_usuario_missao.progresso, 0) AS progresso_missao,
+		tbl_usuario_missao.status      AS status_missao,
+		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+	FROM tbl_usuario_missao
+	INNER JOIN tbl_missao
+		ON tbl_usuario_missao.id_missao = tbl_missao.id
+	INNER JOIN tbl_dificuldade
+		ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+	WHERE tbl_missao.id = p_id_missao;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarMissaoIdCategoria;
+DELIMITER $$
+CREATE PROCEDURE procListarMissaoIdCategoria(IN p_id_categoria INT)
+BEGIN
+	SELECT
+		tbl_missao_categoria.id          	AS id,
+		tbl_missao_categoria.id_missao   	AS id_missao,
+        tbl_missao_categoria.id_categoria 	AS id_categoria,
+		tbl_categoria.nome        			AS nome_categoria
+	FROM tbl_missao_categoria
+	INNER JOIN tbl_categoria
+		ON tbl_missao_categoria.id_categoria = tbl_categoria.id
+	WHERE tbl_categoria.id = p_id_categoria;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarCategoriaByIdMissao;
+DELIMITER $$
+CREATE PROCEDURE procListarCategoriaByIdMissao(IN p_id_missao INT)
+BEGIN
+	SELECT
+		tbl_missao_categoria.id          	AS id,
+		tbl_missao_categoria.id_missao   	AS id_missao,
+        tbl_missao_categoria.id_categoria 	AS id_categoria,
+		tbl_categoria.nome        			AS nome_categoria
+	FROM tbl_missao_categoria
+	INNER JOIN tbl_categoria
+		ON tbl_missao_categoria.id_categoria = tbl_categoria.id
+	WHERE tbl_missao_categoria.id_missao = p_id_missao;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarCategoriaByIdMissao;
+DELIMITER $$
+CREATE PROCEDURE procListarCategoriaByIdMissao(IN p_id_missao INT)
+BEGIN
+	SELECT
+		tbl_missao_categoria.id          	AS id,
+		tbl_missao_categoria.id_missao   	AS id_missao,
+        tbl_missao_categoria.id_categoria 	AS id_categoria,
+		tbl_categoria.nome        			AS nome_categoria
+	FROM tbl_missao_categoria
+	INNER JOIN tbl_categoria
+		ON tbl_missao_categoria.id_categoria = tbl_categoria.id
+	WHERE tbl_missao_categoria.id_missao = p_id_missao;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarEtapasByIdMissao;
+DELIMITER $$
+CREATE PROCEDURE procListarEtapasByIdMissao(IN p_id_missao INT)
+BEGIN
+	SELECT
+		tbl_missao_etapa.id          		AS id_etapa,
+		tbl_missao_etapa.id_missao		   	AS id_missao,
+        tbl_missao_etapa.titulo 			AS nome_etapa,
+		tbl_missao_etapa.xp        			AS qtde_xp,
+        tbl_missao_etapa.ordem				AS numero_ordem
+	FROM tbl_missao_etapa
+	INNER JOIN tbl_missao
+		ON tbl_missao_etapa.id_missao = tbl_missao.id
+	WHERE tbl_missao_etapa.id_missao = p_id_missao;
+END $$
+DELIMITER ;
+
+-- Seleciona a missão pelo o id do usuário
+DROP PROCEDURE IF EXISTS procListarMissaoIdUsuario;
+DELIMITER $$
+CREATE PROCEDURE procListarMissaoIdUsuario(IN p_id_usuario INT)
+BEGIN
+	SELECT
+		tbl_usuario_missao.id          AS id,
+		tbl_usuario_missao.id_missao   AS id_missao,
+        tbl_usuario_missao.id_usuario  AS id_usuario,
+		tbl_missao.nome                AS nome_missao,
+		tbl_missao.descricao           AS descricao_missao,
+		tbl_missao.coins               AS coins_missao,
+		tbl_missao.total_xp_missao     AS xp_missao,
+        tbl_missao.dica				   AS dica_missao,
+		tbl_missao.id_dificuldade      AS dificuldade_missao,
+		tbl_dificuldade.nome           AS nome_dificuldade,
+		COALESCE(tbl_usuario_missao.progresso, 0) AS progresso_missao,
+		tbl_usuario_missao.status      AS status_missao,
+		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+	FROM tbl_usuario_missao
+	INNER JOIN tbl_missao
+		ON tbl_usuario_missao.id_missao = tbl_missao.id
+	INNER JOIN tbl_dificuldade
+		ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+	WHERE tbl_usuario_missao.id_usuario = p_id_usuario;
+END $$
+DELIMITER ;
+
 -- Seleciona todas as missoes disponiveis
 DROP PROCEDURE IF EXISTS procListarTodasMissoesDisponiveis;
 DELIMITER $$
