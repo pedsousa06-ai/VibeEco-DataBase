@@ -4,6 +4,7 @@ create database if not exists db_vibeEco_2026;
 use db_vibeEco_2026;
 
 
+
 -- ============================================================
 -- TABELAS DE SUPORTE / DOMÍNIO
 -- ============================================================
