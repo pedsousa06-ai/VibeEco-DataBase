@@ -580,3 +580,7 @@ INSERT INTO tbl_recompensa_anexo (
 -- ============================================================
 
 SHOW TABLES;
+
+desc tbl_post_anexo;
+
+select * from tbl_post_anexo;
