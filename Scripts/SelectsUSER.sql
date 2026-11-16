@@ -66,6 +66,27 @@ FROM tbl_usuario as u
 WHERE u.exibir_ranking = TRUE
 ORDER BY u.total_xp DESC;
 
+CREATE OR REPLACE VIEW vwDesafios AS
+    SELECT
+        tbl_desafio.id AS id,
+        tbl_desafio.nome AS nome_desafio,
+        tbl_desafio.super_coins AS super_coins,
+        COUNT(tbl_usuario_desafio.id) AS qtde_participantes,
+        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_desafio
+    LEFT JOIN tbl_usuario_desafio
+        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
+	-- WHERE: filtra por uma coluna da linha (antes de agrupar)
+    WHERE tbl_desafio.data_termino >= CURDATE()
+    GROUP BY
+        tbl_desafio.id,
+        tbl_desafio.nome,
+        tbl_desafio.super_coins,
+        tbl_desafio.data_termino
+	-- HAVING: filtra por um resultado agregado (depois de agrupar)
+    HAVING COUNT(tbl_usuario_desafio.id) >= 1
+    ORDER BY qtde_participantes DESC;
+
 -- Seleciona todas as missoes, dando preferencia as que estao vinculadas ao usuario e logo em seguida as que nao estao
 DROP PROCEDURE IF EXISTS procListarTodasMissoes;
 DELIMITER $$
@@ -140,7 +161,11 @@ BEGIN
 		tbl_dificuldade.nome           AS nome_dificuldade,
 		COALESCE(tbl_usuario_missao.progresso, 0) AS progresso_missao,
 		tbl_usuario_missao.status      AS status_missao,
-		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias,
+		(	SELECT COUNT(DISTINCT um.id_usuario)
+			FROM tbl_usuario_missao AS um
+			WHERE um.id_missao = tbl_missao.id
+		) AS total_participantes
 	FROM tbl_usuario_missao
 	INNER JOIN tbl_missao
 		ON tbl_usuario_missao.id_missao = tbl_missao.id
@@ -378,27 +403,6 @@ BEGIN
     ORDER BY tbl_ofensiva.data_ofensiva ASC;
 END $$
 DELIMITER ;
-    
-CREATE OR REPLACE VIEW vwDesafios AS
-    SELECT
-        tbl_desafio.id AS id,
-        tbl_desafio.nome AS nome_desafio,
-        tbl_desafio.super_coins AS super_coins,
-        COUNT(tbl_usuario_desafio.id) AS qtde_participantes,
-        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
-    FROM tbl_desafio
-    LEFT JOIN tbl_usuario_desafio
-        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
-	-- WHERE: filtra por uma coluna da linha (antes de agrupar)
-    WHERE tbl_desafio.data_termino >= CURDATE()
-    GROUP BY
-        tbl_desafio.id,
-        tbl_desafio.nome,
-        tbl_desafio.super_coins,
-        tbl_desafio.data_termino
-	-- HAVING: filtra por um resultado agregado (depois de agrupar)
-    HAVING COUNT(tbl_usuario_desafio.id) >= 1
-    ORDER BY qtde_participantes DESC;
     
 DROP PROCEDURE IF EXISTS procListarConquistasUsuario;
 DELIMITER $$
@@ -833,7 +837,7 @@ DELIMITER ;
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarTodasMissoesDisponiveis(2);
+call procListarCategoriaByIdMissao(1);
 call procListarPostAnexos(2);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);

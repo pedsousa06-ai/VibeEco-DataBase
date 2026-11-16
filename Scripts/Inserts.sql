@@ -531,6 +531,15 @@ INSERT INTO tbl_usuario_conquista (
 (2, 2, '2026-11-09 18:30:00'),
 (3, 3, '2026-11-10 19:00:00');
 
+-- USUÁRIO ETAPA
+INSERT INTO tbl_usuario_etapa (
+    id_usuario,
+    id_etapa,
+    data_conclusao
+) VALUES
+(1, 1, '2026-11-09 14:30:00'),
+(2, 2, '2026-11-09 16:00:00'),
+(3, 3, '2026-11-10 10:00:00');
 
 -- ============================================================
 -- OFENSIVA + MISSÃO + CONTEÚDO EDUCATIVO
