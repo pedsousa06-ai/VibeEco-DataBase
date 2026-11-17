@@ -144,6 +144,34 @@ END $$
 DELIMITER ;
 
 -- Seleciona a missão pelo próprio id
+DROP PROCEDURE IF EXISTS procListarMissaoUsuarioMissao;
+DELIMITER $$
+CREATE PROCEDURE procListarMissaoUsuarioMissao(IN p_id_usuario_missao INT)
+BEGIN
+	SELECT
+		tbl_usuario_missao.id                     AS id,
+		tbl_missao.id                             AS id_missao,
+		tbl_usuario_missao.id_usuario             AS id_usuario,
+		tbl_missao.nome                           AS nome_missao,
+		tbl_missao.descricao                      AS descricao_missao,
+		tbl_missao.coins                          AS coins_missao,
+		tbl_missao.total_xp_missao                AS xp_missao,
+		tbl_missao.dica                           AS dica_missao,
+		tbl_missao.id_dificuldade                 AS dificuldade_missao,
+		tbl_dificuldade.nome                      AS nome_dificuldade,
+		COALESCE(tbl_usuario_missao.progresso, 0) AS progresso_missao,
+		tbl_usuario_missao.status                 AS status_missao,
+		GREATEST(DATEDIFF(tbl_missao.data_termino, CURDATE()), 0) AS prazo_dias
+	FROM tbl_usuario_missao
+	INNER JOIN tbl_missao
+		ON tbl_usuario_missao.id_missao = tbl_missao.id
+	INNER JOIN tbl_dificuldade
+		ON tbl_missao.id_dificuldade = tbl_dificuldade.id
+	WHERE tbl_usuario_missao.id = p_id_usuario_missao;
+END $$
+DELIMITER ;
+
+-- Seleciona a missão pelo próprio id
 DROP PROCEDURE IF EXISTS procListarMissaoIdMissao;
 DELIMITER $$
 CREATE PROCEDURE procListarMissaoIdMissao(IN p_id_missao INT)
@@ -237,6 +265,25 @@ BEGIN
 	INNER JOIN tbl_missao
 		ON tbl_missao_etapa.id_missao = tbl_missao.id
 	WHERE tbl_missao_etapa.id_missao = p_id_missao;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarMissaoEtapaById;
+DELIMITER $$
+CREATE PROCEDURE procListarMissaoEtapaById(IN p_id_etapa INT)
+BEGIN
+	SELECT
+		tbl_missao_etapa.id          AS id_etapa,
+		tbl_missao_etapa.id_missao   AS id_missao,
+		tbl_missao_etapa.titulo      AS nome_etapa,
+		tbl_missao_etapa.xp          AS qtde_xp,
+		tbl_missao_etapa.ordem       AS numero_ordem,
+		-- negativo = prazo encerrado (o prazo_dias das outras procedures nunca fica negativo)
+		DATEDIFF(tbl_missao.data_termino, CURDATE()) AS dias_restantes
+	FROM tbl_missao_etapa
+	INNER JOIN tbl_missao
+		ON tbl_missao.id = tbl_missao_etapa.id_missao
+	WHERE tbl_missao_etapa.id = p_id_etapa;
 END $$
 DELIMITER ;
 
@@ -834,11 +881,80 @@ BEGIN
 END	$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS procListarUsuarioEtapaByIdUsuarioEtapa;
+DELIMITER $$
+CREATE PROCEDURE procListarUsuarioEtapaByIdUsuarioEtapa(IN p_id_usuario_etapa INT)
+BEGIN
+	SELECT
+		tbl_usuario_etapa.id              AS id,
+		tbl_usuario_etapa.id_usuario      AS id_usuario,
+		tbl_usuario_etapa.id_etapa        AS id_etapa,
+		DATE_FORMAT(tbl_usuario_etapa.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+		tbl_missao_etapa.titulo           AS nome_etapa,
+		tbl_missao_etapa.xp               AS qtde_xp,
+		tbl_missao_etapa.ordem            AS numero_ordem,
+		tbl_missao.id                     AS id_missao,
+		tbl_missao.nome                   AS nome_missao
+	FROM tbl_usuario_etapa
+	INNER JOIN tbl_missao_etapa
+		ON tbl_missao_etapa.id = tbl_usuario_etapa.id_etapa
+	INNER JOIN tbl_missao
+		ON tbl_missao.id = tbl_missao_etapa.id_missao
+	WHERE tbl_usuario_etapa.id = p_id_usuario_etapa;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarUsuarioEtapaByIdUsuario;
+DELIMITER $$
+CREATE PROCEDURE procListarUsuarioEtapaByIdUsuario(IN p_id_usuario INT)
+BEGIN
+	SELECT
+		tbl_usuario_etapa.id              AS id,
+		tbl_usuario_etapa.id_usuario      AS id_usuario,
+		tbl_usuario_etapa.id_etapa        AS id_etapa,
+		DATE_FORMAT(tbl_usuario_etapa.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+		tbl_missao_etapa.titulo           AS nome_etapa,
+		tbl_missao_etapa.xp               AS qtde_xp,
+		tbl_missao_etapa.ordem            AS numero_ordem,
+		tbl_missao.id                     AS id_missao,
+		tbl_missao.nome                   AS nome_missao
+	FROM tbl_usuario_etapa
+	INNER JOIN tbl_missao_etapa
+		ON tbl_missao_etapa.id = tbl_usuario_etapa.id_etapa
+	INNER JOIN tbl_missao
+		ON tbl_missao.id = tbl_missao_etapa.id_missao
+	WHERE tbl_usuario_etapa.id_usuario = p_id_usuario;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarUsuarioEtapaByIdEtapa;
+DELIMITER $$
+CREATE PROCEDURE procListarUsuarioEtapaByIdEtapa(IN p_id_etapa INT)
+BEGIN
+	SELECT
+		tbl_usuario_etapa.id              AS id,
+		tbl_usuario_etapa.id_usuario      AS id_usuario,
+		tbl_usuario_etapa.id_etapa        AS id_etapa,
+		DATE_FORMAT(tbl_usuario_etapa.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+		tbl_missao_etapa.titulo           AS nome_etapa,
+		tbl_missao_etapa.xp               AS qtde_xp,
+		tbl_missao_etapa.ordem            AS numero_ordem,
+		tbl_missao.id                     AS id_missao,
+		tbl_missao.nome                   AS nome_missao
+	FROM tbl_usuario_etapa
+	INNER JOIN tbl_missao_etapa
+		ON tbl_missao_etapa.id = tbl_usuario_etapa.id_etapa
+	INNER JOIN tbl_missao
+		ON tbl_missao.id = tbl_missao_etapa.id_missao
+	WHERE tbl_usuario_etapa.id_etapa = p_id_etapa;
+END $$
+DELIMITER ;
+
+
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarCategoriaByIdMissao(1);
-call procListarPostAnexos(2);
+call procListarMissaoEtapaById(1);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);
 #Permite apagar procedures existentes no banco

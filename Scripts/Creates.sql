@@ -1,9 +1,9 @@
 -- ***** BANCO DE DADOS VIBEECO *****
--- DROP DATABASE db_vibeEco_2026;
+ DROP DATABASE db_vibeEco_2026;
 create database if not exists db_vibeEco_2026;
 use db_vibeEco_2026;
 
-
+select * from tbl_usuario_conquista;
 
 -- ============================================================
 -- TABELAS DE SUPORTE / DOMÍNIO
