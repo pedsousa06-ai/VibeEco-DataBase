@@ -95,6 +95,8 @@ CREATE TABLE IF NOT EXISTS tbl_usuario_adm(
     email varchar(255) not null,
     senha varchar(255) not null,
     id_nivel_acesso int not null,
+    codigo_recuperacao varchar(10),
+    codigo_expiracao datetime,
 
     constraint FK_NIVEL_ACESSO_USUARIO_ADM
         foreign key (id_nivel_acesso)
