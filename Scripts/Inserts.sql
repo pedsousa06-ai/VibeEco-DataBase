@@ -581,6 +581,6 @@ INSERT INTO tbl_recompensa_anexo (
 
 SHOW TABLES;
 
-desc tbl_post_anexo;
+desc tbl_missao_etapa;
 
-select * from tbl_post_anexo;
+select * from tbl_missao_etapa where id_missao = 34;
