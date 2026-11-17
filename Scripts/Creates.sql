@@ -3,8 +3,6 @@
 create database if not exists db_vibeEco_2026;
 use db_vibeEco_2026;
 
-select * from tbl_usuario_conquista;
-
 -- ============================================================
 -- TABELAS DE SUPORTE / DOMÍNIO
 -- ============================================================
