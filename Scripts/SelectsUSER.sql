@@ -1189,3 +1189,88 @@ call procListarPostViaId(1);
 -- drop procedure procListarComentariosByIdpostComentario;
 #Permite apagar uma view no banco
 -- drop view vwPostCurtidas
+
+
+
+USE db_vibeEco_2026;
+
+-- 1. Idioma
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='idioma');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN idioma VARCHAR(10) NOT NULL DEFAULT 'pt-BR'", "SELECT 'idioma ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- 2. Tema
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='tema');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN tema ENUM('claro','escuro') NOT NULL DEFAULT 'claro'", "SELECT 'tema ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- 3. Alto Contraste
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='alto_contraste');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN alto_contraste BOOLEAN NOT NULL DEFAULT FALSE", "SELECT 'alto_contraste ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- 4. Tamanho da Fonte
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='tamanho_fonte');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN tamanho_fonte ENUM('pequeno','medio','grande') NOT NULL DEFAULT 'medio'", "SELECT 'tamanho_fonte ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- 5. Animações
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='animacoes');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN animacoes BOOLEAN NOT NULL DEFAULT TRUE", "SELECT 'animacoes ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- 6. Atividades Visíveis
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='atividades_visiveis');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN atividades_visiveis BOOLEAN NOT NULL DEFAULT TRUE", "SELECT 'atividades_visiveis ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- 7. Perfil Público
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='perfil_publico');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN perfil_publico BOOLEAN NOT NULL DEFAULT TRUE", "SELECT 'perfil_publico ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- 8. Exibir Ranking (garantia, já que você usou no script original)
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='exibir_ranking');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN exibir_ranking BOOLEAN NOT NULL DEFAULT TRUE", "SELECT 'exibir_ranking ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+USE db_vibeEco_2026;
+
+-- Adiciona as colunas necessárias para a tela de Configurações
+ALTER TABLE tbl_usuario
+  ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) NOT NULL DEFAULT 'pt-BR',
+  ADD COLUMN IF NOT EXISTS tema ENUM('claro','escuro') NOT NULL DEFAULT 'claro',
+  ADD COLUMN IF NOT EXISTS alto_contraste BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS tamanho_fonte ENUM('pequeno','medio','grande') NOT NULL DEFAULT 'medio',
+  ADD COLUMN IF NOT EXISTS animacoes BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS atividades_visiveis BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS perfil_publico BOOLEAN NOT NULL DEFAULT TRUE;
+
+-- A coluna exibir_ranking já foi criada no seu script original, 
+-- mas se por acaso não existir, este comando garante:
+ALTER TABLE tbl_usuario
+  ADD COLUMN IF NOT EXISTS exibir_ranking BOOLEAN NOT NULL DEFAULT TRUE;
