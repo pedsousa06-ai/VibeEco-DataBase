@@ -1251,12 +1251,109 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 
 
+USE db_vibeEco_2026;
+ALTER TABLE tbl_usuario_desafio ADD COLUMN progresso INT NOT NULL DEFAULT 0;
 
 
+USE db_vibeEco_2026;
 
+CREATE OR REPLACE VIEW vwHistoricoUsuario AS
+-- 1. Missões
+SELECT 
+    CONCAT('missao_', um.id) AS id,
+    um.id_usuario,
+    'missao' AS tipo,
+    'Missão' AS rotulo,
+    m.nome AS titulo,
+    um.data_conclusao AS data_evento,
+    IFNULL(m.total_xp_missao, 0) AS xp,
+    IFNULL(m.coins, 0) AS mc,
+    um.progresso AS progresso,
+    m.descricao AS descricao
+FROM tbl_usuario_missao um
+JOIN tbl_missao m ON m.id = um.id_missao
+WHERE um.status = 'CONCLUIDA'
 
+UNION ALL
 
+-- 2. Conteúdo Educativo
+SELECT 
+    CONCAT('conteudo_', uce.id) AS id,
+    uce.id_usuario,
+    'conteudo' AS tipo,
+    'Conteúdo consumido' AS rotulo,
+    ce.nome AS titulo,
+    uce.data_acesso AS data_evento,
+    IFNULL(ce.qtde_xp, 0) AS xp,
+    0 AS mc,
+    100 AS progresso,
+    ce.descricao AS descricao
+FROM tbl_usuario_conteudo_educativo uce
+JOIN tbl_conteudo_educativo ce ON ce.id = uce.id_conteudo_educativo
+WHERE uce.concluido = TRUE
 
+UNION ALL
+
+-- 3. Desafios
+SELECT 
+    CONCAT('desafio_', ud.id) AS id,
+    ud.id_usuario,
+    'desafio' AS tipo,
+    'Participação em desafio' AS rotulo,
+    d.nome AS titulo,
+    IFNULL(ud.data_conclusao, d.data_inicio) AS data_evento,
+    0 AS xp, -- Desafio não tem XP direto na tbl_desafio, só super_coins
+    IFNULL(d.super_coins, 0) AS mc,
+    ud.progresso AS progresso,
+    d.descricao AS descricao
+FROM tbl_usuario_desafio ud
+JOIN tbl_desafio d ON d.id = ud.id_desafio
+
+UNION ALL
+
+-- 4. Conquistas
+SELECT 
+    CONCAT('conquista_', uc.id) AS id,
+    uc.id_usuario,
+    'conquista' AS tipo,
+    'Conquista desbloqueada' AS rotulo,
+    c.nome AS titulo,
+    uc.data_conquista AS data_evento,
+    0 AS xp, 
+    0 AS mc,
+    100 AS progresso,
+    c.descricao AS descricao
+FROM tbl_usuario_conquista uc
+JOIN tbl_conquista c ON c.id = uc.id_conquista
+
+UNION ALL
+
+-- 5. Recompensas
+SELECT 
+    CONCAT('recompensa_', ur.id) AS id,
+    ur.id_usuario,
+    'recompensa' AS tipo,
+    'Recompensa resgatada' AS rotulo,
+    r.nome AS titulo,
+    ur.data_resgate AS data_evento,
+    0 AS xp,
+    -IFNULL(r.valor, 0) AS mc, -- Negativo porque foi gasto
+    100 AS progresso,
+    r.descricao AS descricao
+FROM tbl_usuario_recompensa ur
+JOIN tbl_recompensa r ON r.id = ur.id_recompensa;
+
+USE db_vibeEco_2026;
+
+-- Adiciona a coluna progresso se não existir
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario_desafio' AND COLUMN_NAME='progresso');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario_desafio ADD COLUMN progresso INT NOT NULL DEFAULT 0", "SELECT 'progresso ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- Adiciona a coluna data_conclusao se não existir
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario_desafio' AND COLUMN_NAME='data_conclusao');
+SET @s := IF(@c=0, "ALTER TABLE tbl_usuario_desafio ADD COLUMN data_conclusao DATETIME NULL", "SELECT 'data_conclusao ok' AS aviso");
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 USE db_vibeEco_2026;
 
