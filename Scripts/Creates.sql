@@ -195,6 +195,18 @@ CREATE TABLE IF NOT EXISTS tbl_desafio(
         references tbl_dificuldade(id)
 );
 
+CREATE TABLE IF NOT EXISTS tbl_tipo_desafio(
+    id int not null primary key auto_increment,
+    nome varchar(20) not null
+);
+
+ALTER TABLE tbl_desafio
+    ADD COLUMN id_tipo_desafio int not null,
+    ADD CONSTRAINT FK_TIPO_DESAFIO
+        foreign key (id_tipo_desafio) references tbl_tipo_desafio(id);
+        
+ALTER TABLE tbl_desafio
+    ADD COLUMN meta_participantes int;
 
 CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo(
     id int not null primary key auto_increment,
@@ -446,6 +458,12 @@ CREATE TABLE IF NOT EXISTS tbl_usuario_desafio(
         foreign key (id_desafio)
         references tbl_desafio(id)
 );
+
+ALTER TABLE tbl_usuario_desafio
+    ADD COLUMN progresso int not null default 0,
+    MODIFY COLUMN status enum('EM_ANDAMENTO','CONCLUIDO','ABANDONADO')
+        not null default 'EM_ANDAMENTO',
+    ADD CONSTRAINT uq_usuario_desafio UNIQUE (id_usuario, id_desafio);
 
 
 CREATE TABLE IF NOT EXISTS tbl_usuario_recompensa(
