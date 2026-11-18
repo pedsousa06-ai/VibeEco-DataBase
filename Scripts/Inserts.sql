@@ -216,6 +216,8 @@ INSERT INTO tbl_missao_etapa (
 (2, 'Feche a torneira enquanto escova os dentes.', 60, 1),
 (3, 'Desligue as luzes ao sair dos ambientes.', 90, 1);
 
+INSERT INTO tbl_tipo_desafio (nome) VALUES ('Individual'), ('Coletivo');
+
 -- DESAFIO
 INSERT INTO tbl_desafio (
     nome,
@@ -223,7 +225,9 @@ INSERT INTO tbl_desafio (
     super_coins,
     data_inicio,
     data_termino,
-    id_dificuldade
+    id_dificuldade,
+    id_tipo_desafio,
+    meta_participantes
 ) VALUES
 (
     'Semana sem plástico',
@@ -231,7 +235,9 @@ INSERT INTO tbl_desafio (
     150,
     '2026-11-01',
     '2026-11-30',
-    1
+    1,
+    1,
+    100
 ),
 (
     'Plantando o futuro',
@@ -239,7 +245,9 @@ INSERT INTO tbl_desafio (
     300,
     '2026-11-01',
     '2026-11-30',
-    2
+    2,
+    2,
+    100
 ),
 (
     'Desafio energia consciente',
@@ -247,7 +255,9 @@ INSERT INTO tbl_desafio (
     450,
     '2026-11-01',
     '2026-11-30',
-    3
+    3,
+    1,
+    200
 );
 
 -- CONTEÚDO EDUCATIVO (inclui "duracao_leitura", NOT NULL, criada via ALTER TABLE)

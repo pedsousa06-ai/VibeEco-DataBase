@@ -235,22 +235,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-DROP PROCEDURE IF EXISTS procListarCategoriaByIdMissao;
-DELIMITER $$
-CREATE PROCEDURE procListarCategoriaByIdMissao(IN p_id_missao INT)
-BEGIN
-	SELECT
-		tbl_missao_categoria.id          	AS id,
-		tbl_missao_categoria.id_missao   	AS id_missao,
-        tbl_missao_categoria.id_categoria 	AS id_categoria,
-		tbl_categoria.nome        			AS nome_categoria
-	FROM tbl_missao_categoria
-	INNER JOIN tbl_categoria
-		ON tbl_missao_categoria.id_categoria = tbl_categoria.id
-	WHERE tbl_missao_categoria.id_missao = p_id_missao;
-END $$
-DELIMITER ;
-
 DROP PROCEDURE IF EXISTS procListarEtapasByIdMissao;
 DELIMITER $$
 CREATE PROCEDURE procListarEtapasByIdMissao(IN p_id_missao INT)
@@ -429,7 +413,6 @@ BEGIN
 	LIMIT 0, 1000;
 END $$
 DELIMITER ;
-
     
 DROP PROCEDURE IF EXISTS procListarOfensivaUsuario;
 DELIMITER $$
@@ -950,11 +933,255 @@ BEGIN
 END $$
 DELIMITER ;
 
+-- Seleciona a desafio pelo próprio id
+DROP PROCEDURE IF EXISTS procListarDesafioIdDesafio;
+DELIMITER $$
+CREATE PROCEDURE procListarDesafioIdDesafio(IN p_id_desafio INT)
+BEGIN
+    SELECT
+        tbl_usuario_desafio.id              AS id_usuario_desafio,
+        tbl_usuario_desafio.id_desafio      AS id_desafio,
+        tbl_usuario_desafio.id_usuario      AS id_usuario,
+        tbl_usuario.nome                    AS nome_usuario,
+        tbl_usuario.foto                    AS foto_usuario,
+        tbl_desafio.nome                    AS nome_desafio,
+        tbl_desafio.descricao               AS descricao_desafio,
+        tbl_desafio.super_coins             AS coins_desafio,
+        tbl_desafio.data_inicio             AS data_inicio,
+        tbl_desafio.data_termino            AS data_termino,
+        tbl_tipo_desafio.nome               AS tipo_desafio,
+        tbl_dificuldade.nome                AS nome_dificuldade,
+        tbl_desafio.meta_participantes      AS meta_participantes,
+        (
+            SELECT COUNT(*)
+            FROM tbl_usuario_desafio AS ud
+            WHERE ud.id_desafio = tbl_desafio.id
+              AND ud.status <> 'ABANDONADO'
+        )                                   AS qtde_participantes,
+        tbl_usuario_desafio.progresso       AS progresso,
+        tbl_usuario_desafio.status          AS status_desafio,
+        DATE_FORMAT(tbl_usuario_desafio.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_usuario_desafio
+    INNER JOIN tbl_desafio
+        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
+    INNER JOIN tbl_usuario
+        ON tbl_usuario_desafio.id_usuario = tbl_usuario.id
+    INNER JOIN tbl_dificuldade
+        ON tbl_desafio.id_dificuldade = tbl_dificuldade.id
+    INNER JOIN tbl_tipo_desafio
+        ON tbl_desafio.id_tipo_desafio = tbl_tipo_desafio.id
+    WHERE tbl_usuario_desafio.id_desafio = p_id_desafio
+    ORDER BY
+        (tbl_usuario_desafio.status = 'ABANDONADO'),  -- abandonados por último
+        tbl_usuario_desafio.progresso DESC,           -- maior progresso primeiro
+        tbl_usuario_desafio.id ASC;                   -- desempate estável
+END $$
+DELIMITER ;
+
+-- Seleciona a desafio pelo próprio id e o id do usuario
+DROP PROCEDURE IF EXISTS procListarDesafioIdDesafioIdUsuario;
+DELIMITER $$
+CREATE PROCEDURE procListarDesafioIdDesafioIdUsuario(IN p_id_desafio INT, IN p_id_usuario INT)
+BEGIN
+    SELECT
+        tbl_usuario_desafio.id              AS id_usuario_desafio,
+        tbl_usuario_desafio.id_desafio      AS id_desafio,
+        tbl_usuario_desafio.id_usuario      AS id_usuario,
+        tbl_desafio.nome                    AS nome_desafio,
+        tbl_desafio.descricao               AS descricao_desafio,
+        tbl_desafio.super_coins             AS coins_desafio,
+        tbl_desafio.data_inicio             AS data_inicio,
+        tbl_desafio.data_termino            AS data_termino,
+        tbl_tipo_desafio.nome               AS tipo_desafio,
+        tbl_dificuldade.nome                AS nome_dificuldade,
+        tbl_desafio.meta_participantes      AS meta_participantes,
+        (
+            SELECT COUNT(*)
+            FROM tbl_usuario_desafio AS ud
+            WHERE ud.id_desafio = tbl_desafio.id
+              AND ud.status <> 'ABANDONADO'
+        )                                   AS qtde_participantes,
+        COALESCE(tbl_usuario_desafio.progresso, 0) AS progresso,
+        tbl_usuario_desafio.status          AS status_desafio,
+        DATE_FORMAT(tbl_usuario_desafio.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_usuario_desafio
+    INNER JOIN tbl_desafio
+        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
+    INNER JOIN tbl_dificuldade
+        ON tbl_desafio.id_dificuldade = tbl_dificuldade.id
+    INNER JOIN tbl_tipo_desafio
+        ON tbl_desafio.id_tipo_desafio = tbl_tipo_desafio.id
+    WHERE tbl_usuario_desafio.id_usuario = p_id_usuario
+      AND tbl_usuario_desafio.id_desafio = p_id_desafio;
+END $$
+DELIMITER ;
+
+-- Seleciona a desafio pelo próprio id e o id do usuario
+DROP PROCEDURE IF EXISTS procListarDesafioIdUsuarioDesafio;
+DELIMITER $$
+CREATE PROCEDURE procListarDesafioIdUsuarioDesafio(IN p_id_usuario_desafio INT)
+BEGIN
+    SELECT
+        tbl_usuario_desafio.id              AS id_usuario_desafio,
+        tbl_usuario_desafio.id_desafio      AS id_desafio,
+        tbl_usuario_desafio.id_usuario      AS id_usuario,
+        tbl_desafio.nome                    AS nome_desafio,
+        tbl_desafio.descricao               AS descricao_desafio,
+        tbl_desafio.super_coins             AS coins_desafio,
+        tbl_desafio.data_inicio             AS data_inicio,
+        tbl_desafio.data_termino            AS data_termino,
+        tbl_tipo_desafio.nome               AS tipo_desafio,
+        tbl_dificuldade.nome                AS nome_dificuldade,
+        tbl_desafio.meta_participantes      AS meta_participantes,
+        (
+            SELECT COUNT(*)
+            FROM tbl_usuario_desafio AS ud
+            WHERE ud.id_desafio = tbl_desafio.id
+              AND ud.status <> 'ABANDONADO'
+        )                                   AS qtde_participantes,
+        COALESCE(tbl_usuario_desafio.progresso, 0) AS progresso,
+        tbl_usuario_desafio.status          AS status_desafio,
+        DATE_FORMAT(tbl_usuario_desafio.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_usuario_desafio
+    INNER JOIN tbl_desafio
+        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
+    INNER JOIN tbl_dificuldade
+        ON tbl_desafio.id_dificuldade = tbl_dificuldade.id
+    INNER JOIN tbl_tipo_desafio
+        ON tbl_desafio.id_tipo_desafio = tbl_tipo_desafio.id
+    WHERE tbl_usuario_desafio.id = p_id_usuario_desafio;
+END $$
+DELIMITER ;
+
+-- Seleciona os desafios de um usuario
+DROP PROCEDURE IF EXISTS procListarDesafioIdUsuarioTodos;
+DELIMITER $$
+CREATE PROCEDURE procListarDesafioIdUsuarioTodos(IN p_id_usuario INT)
+BEGIN
+    SELECT
+        tbl_desafio.id                      AS id_desafio,
+        tbl_usuario_desafio.id_usuario      AS id_usuario,
+        tbl_usuario_desafio.id              AS id_usuario_desafio,
+        tbl_desafio.nome                    AS nome_desafio,
+        tbl_desafio.descricao               AS descricao_desafio,
+        tbl_desafio.super_coins             AS coins_desafio,
+        tbl_desafio.data_inicio				AS data_inicio,
+        tbl_desafio.data_termino			AS data_termino,
+        tbl_tipo_desafio.nome               AS tipo_desafio,
+        tbl_dificuldade.nome                AS nome_dificuldade,
+        tbl_desafio.meta_participantes      AS meta_participantes,
+        (
+            SELECT COUNT(*)
+            FROM tbl_usuario_desafio AS ud
+            WHERE ud.id_desafio = tbl_desafio.id
+              AND ud.status <> 'ABANDONADO'
+        )                                   AS qtde_participantes,
+        COALESCE(tbl_usuario_desafio.progresso, 0) AS progresso,
+        tbl_usuario_desafio.status          AS status_desafio,
+        DATE_FORMAT(tbl_usuario_desafio.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_desafio
+    INNER JOIN tbl_dificuldade
+        ON tbl_desafio.id_dificuldade = tbl_dificuldade.id
+    INNER JOIN tbl_tipo_desafio
+        ON tbl_desafio.id_tipo_desafio = tbl_tipo_desafio.id
+    LEFT JOIN tbl_usuario_desafio
+        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
+       AND tbl_usuario_desafio.id_usuario = p_id_usuario
+    ORDER BY
+        (tbl_usuario_desafio.status <=> 'CONCLUIDO'), -- concluídos por último
+        (tbl_desafio.data_termino IS NULL),           -- sem prazo definido vão depois dos com prazo
+        (tbl_desafio.data_termino < CURDATE()),       -- já encerrados vão depois dos ativos
+        tbl_desafio.data_termino ASC,                 -- do prazo mais próximo ao mais distante
+        tbl_desafio.id ASC;                           -- desempate estável
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarDesafioIdUsuarioIndividuaisColetivos;
+DELIMITER $$
+CREATE PROCEDURE procListarDesafioIdUsuarioIndividuaisColetivos(IN p_id_usuario INT, IN p_id_tipo_desafio INT)
+BEGIN
+    SELECT
+        tbl_desafio.id                      AS id_desafio,
+        tbl_usuario_desafio.id_usuario      AS id_usuario,
+        tbl_usuario_desafio.id              AS id_usuario_desafio,
+        tbl_desafio.nome                    AS nome_desafio,
+        tbl_desafio.descricao               AS descricao_desafio,
+        tbl_desafio.super_coins             AS coins_desafio,
+        tbl_desafio.data_inicio             AS data_inicio,
+        tbl_desafio.data_termino            AS data_termino,
+        tbl_tipo_desafio.nome               AS tipo_desafio,
+        tbl_dificuldade.nome                AS nome_dificuldade,
+        tbl_desafio.meta_participantes      AS meta_participantes,
+        (
+            SELECT COUNT(*)
+            FROM tbl_usuario_desafio AS ud
+            WHERE ud.id_desafio = tbl_desafio.id
+              AND ud.status <> 'ABANDONADO'
+        )                                   AS qtde_participantes,
+        COALESCE(tbl_usuario_desafio.progresso, 0) AS progresso,
+        tbl_usuario_desafio.status          AS status_desafio,
+        DATE_FORMAT(tbl_usuario_desafio.data_conclusao,'%d/%m/%Y %H:%i') AS data_conclusao,
+        GREATEST(DATEDIFF(tbl_desafio.data_termino, CURDATE()), 0) AS prazo_dias
+    FROM tbl_desafio
+    INNER JOIN tbl_dificuldade
+        ON tbl_desafio.id_dificuldade = tbl_dificuldade.id
+    INNER JOIN tbl_tipo_desafio
+        ON tbl_desafio.id_tipo_desafio = tbl_tipo_desafio.id
+    LEFT JOIN tbl_usuario_desafio
+        ON tbl_usuario_desafio.id_desafio = tbl_desafio.id
+       AND tbl_usuario_desafio.id_usuario = p_id_usuario
+    WHERE tbl_desafio.id_tipo_desafio = p_id_tipo_desafio
+    ORDER BY
+        (tbl_usuario_desafio.status <=> 'CONCLUIDO'), -- concluídos por último
+        (tbl_desafio.data_termino IS NULL),           -- sem prazo definido vão depois dos com prazo
+        (tbl_desafio.data_termino < CURDATE()),       -- já encerrados vão depois dos ativos
+        tbl_desafio.data_termino ASC,                 -- do prazo mais próximo ao mais distante
+        tbl_desafio.id ASC;                           -- desempate estável
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarDesafioIdCategoria;
+DELIMITER $$
+CREATE PROCEDURE procListarDesafioIdCategoria(IN p_id_categoria INT)
+BEGIN
+	SELECT
+		tbl_desafio_categoria.id          	AS id,
+		tbl_desafio_categoria.id_desafio   	AS id_desafio,
+        tbl_desafio_categoria.id_categoria 	AS id_categoria,
+		tbl_categoria.nome        			AS nome_categoria
+	FROM tbl_desafio_categoria
+	INNER JOIN tbl_categoria
+		ON tbl_desafio_categoria.id_categoria = tbl_categoria.id
+	WHERE tbl_categoria.id = p_id_categoria;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS procListarCategoriaByIdDesafio;
+DELIMITER $$
+CREATE PROCEDURE procListarCategoriaByIdDesafio(IN p_id_desafio INT)
+BEGIN
+	SELECT
+		tbl_desafio_categoria.id          	AS id,
+		tbl_desafio_categoria.id_desafio   	AS id_desafio,
+        tbl_desafio_categoria.id_categoria 	AS id_categoria,
+		tbl_categoria.nome        			AS nome_categoria
+	FROM tbl_desafio_categoria
+	INNER JOIN tbl_categoria
+		ON tbl_desafio_categoria.id_categoria = tbl_categoria.id
+	WHERE tbl_desafio_categoria.id_desafio = p_id_desafio;
+END $$
+DELIMITER ;
+
+select * from tbl_usuario_desafio;
 
 # Permite visualizar todas as procedures existentes no banco de dados
 show procedure status;
 #Executa a procedure existente no banco
-call procListarMissaoEtapaById(1);
+call procListarDesafioIdDesafio(4);
 call procListarComentariosByIdpostComentario(1);
 call procListarPostViaId(1);
 #Permite apagar procedures existentes no banco
