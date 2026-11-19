@@ -1235,26 +1235,6 @@ SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN exibir_ranking BOOLEAN NO
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-USE db_vibeEco_2026;
-ALTER TABLE tbl_usuario_desafio ADD COLUMN progresso INT NOT NULL DEFAULT 0;
-
-
 USE db_vibeEco_2026;
 
 CREATE OR REPLACE VIEW vwHistoricoUsuario AS
