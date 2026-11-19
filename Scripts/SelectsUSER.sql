@@ -1355,19 +1355,45 @@ SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='d
 SET @s := IF(@c=0, "ALTER TABLE tbl_usuario_desafio ADD COLUMN data_conclusao DATETIME NULL", "SELECT 'data_conclusao ok' AS aviso");
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
-USE db_vibeEco_2026;
+  
+  USE db_vibeEco_2026;
 
--- Adiciona as colunas necessárias para a tela de Configurações
-ALTER TABLE tbl_usuario
-  ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) NOT NULL DEFAULT 'pt-BR',
-  ADD COLUMN IF NOT EXISTS tema ENUM('claro','escuro') NOT NULL DEFAULT 'claro',
-  ADD COLUMN IF NOT EXISTS alto_contraste BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS tamanho_fonte ENUM('pequeno','medio','grande') NOT NULL DEFAULT 'medio',
-  ADD COLUMN IF NOT EXISTS animacoes BOOLEAN NOT NULL DEFAULT TRUE,
-  ADD COLUMN IF NOT EXISTS atividades_visiveis BOOLEAN NOT NULL DEFAULT TRUE,
-  ADD COLUMN IF NOT EXISTS perfil_publico BOOLEAN NOT NULL DEFAULT TRUE;
+-- Listar notificações
+DROP PROCEDURE IF EXISTS procListarNotificacoes;
+DELIMITER $$
+CREATE PROCEDURE procListarNotificacoes(IN p_id_usuario INT)
+BEGIN
+    SELECT 
+        id,
+        id_usuario,
+        titulo,
+        mensagem AS texto,
+        lida,
+        data_criacao
+    FROM tbl_notificacao
+    WHERE id_usuario = p_id_usuario
+    ORDER BY data_criacao DESC;
+END $$
+DELIMITER ;
 
--- A coluna exibir_ranking já foi criada no seu script original, 
--- mas se por acaso não existir, este comando garante:
-ALTER TABLE tbl_usuario
-  ADD COLUMN IF NOT EXISTS exibir_ranking BOOLEAN NOT NULL DEFAULT TRUE;
+-- Marcar uma notificação como lida
+DROP PROCEDURE IF EXISTS procMarcarNotificacaoLida;
+DELIMITER $$
+CREATE PROCEDURE procMarcarNotificacaoLida(IN p_id_notificacao INT)
+BEGIN
+    UPDATE tbl_notificacao 
+    SET lida = TRUE 
+    WHERE id = p_id_notificacao;
+END $$
+DELIMITER ;
+
+-- Marcar todas como lidas (opcional, mas útil para o botão)
+DROP PROCEDURE IF EXISTS procMarcarTodasNotificacoesLidas;
+DELIMITER $$
+CREATE PROCEDURE procMarcarTodasNotificacoesLidas(IN p_id_usuario INT)
+BEGIN
+    UPDATE tbl_notificacao 
+    SET lida = TRUE 
+    WHERE id_usuario = p_id_usuario;
+END $$
+DELIMITER ;
