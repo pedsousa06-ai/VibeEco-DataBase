@@ -594,8 +594,701 @@ INSERT INTO tbl_recompensa_anexo (
 (3, 3);
 
 
+
+
+USE db_vibeEco_2026;
+
+-- =====================================================
+-- 1. VISIBILIDADE DO RANKING
+-- =====================================================
+
+-- Execute somente se a coluna ainda não existir:
+-- ALTER TABLE tbl_usuario
+-- ADD COLUMN exibir_ranking BOOLEAN NOT NULL DEFAULT TRUE;
+
+
+-- =====================================================
+-- 2. CRIAR TABELA DE GRUPOS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_grupo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    id_instituicao INT NOT NULL,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY (id_instituicao)
+        REFERENCES tbl_instituicao(id)
+);
+
+
+-- =====================================================
+-- 3. CRIAR RELACIONAMENTO USUÁRIO E GRUPO
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_usuario_grupo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_grupo INT NOT NULL,
+    data_entrada DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES tbl_usuario(id),
+
+    FOREIGN KEY (id_grupo)
+        REFERENCES tbl_grupo(id),
+
+    UNIQUE (id_usuario),
+
+    INDEX IDX_GRUPO_USUARIO (id_grupo)
+);
+
+
+-- =====================================================
+-- 4. CONFERIR INSTITUIÇÕES
+-- =====================================================
+
+SELECT id, nome
+FROM tbl_instituicao;
+
+
+-- =====================================================
+-- 5. CADASTRAR GRUPOS DE EXEMPLO
+-- Substitua o nome da instituição se necessário.
+-- Não duplica os grupos se já existirem.
+-- =====================================================
+
+INSERT INTO tbl_grupo (
+    nome,
+    descricao,
+    id_instituicao
+)
+SELECT
+    'Turma de Sustentabilidade',
+    'Grupo de atividades sobre sustentabilidade',
+    i.id
+FROM tbl_instituicao i
+WHERE i.nome = 'SENAI'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_grupo g
+    WHERE g.nome = 'Turma de Sustentabilidade'
+      AND g.id_instituicao = i.id
+);
+
+
+INSERT INTO tbl_grupo (
+    nome,
+    descricao,
+    id_instituicao
+)
+SELECT
+    'Turma de Reciclagem',
+    'Grupo de atividades sobre reciclagem',
+    i.id
+FROM tbl_instituicao i
+WHERE i.nome = 'SENAI'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_grupo g
+    WHERE g.nome = 'Turma de Reciclagem'
+      AND g.id_instituicao = i.id
+);
+
+
+-- =====================================================
+-- 6. CONFERIR GRUPOS
+-- =====================================================
+
+SELECT
+    g.id,
+    g.nome AS grupo,
+    i.nome AS instituicao,
+    g.ativo
+FROM tbl_grupo g
+INNER JOIN tbl_instituicao i
+    ON i.id = g.id_instituicao;
+
+
+-- =====================================================
+-- 7. CONFERIR USUÁRIOS E INSTITUIÇÕES
+-- =====================================================
+
+SELECT
+    u.id,
+    u.nome,
+    u.email,
+    i.nome AS instituicao
+FROM tbl_usuario u
+INNER JOIN tbl_instituicao i
+    ON i.id = u.id_instituicao;
+
+
+-- =====================================================
+-- 8. CRIAR OU ATUALIZAR VIEW DO RANKING
+-- =====================================================
+
+CREATE OR REPLACE VIEW vwRanking AS
+SELECT
+    u.id AS id,
+    u.nome AS nome_usuario,
+    u.foto AS foto_usuario,
+    u.total_xp AS xp_usuario,
+    u.id_instituicao AS id_instituicao,
+    e.nome AS escolaridade,
+    i.nome AS instituicao,
+    l.nome AS nome_level,
+    l.numero_level AS nivel,
+    COALESCE(conquistas.total_conquistas, 0) AS conquistas,
+    g.id AS id_grupo,
+    g.nome AS nome_grupo
+
+FROM tbl_usuario u
+
+INNER JOIN tbl_escolaridade e
+    ON u.id_escolaridade = e.id
+
+INNER JOIN tbl_instituicao i
+    ON u.id_instituicao = i.id
+
+INNER JOIN tbl_level_user l
+    ON u.id_level = l.id
+
+LEFT JOIN tbl_usuario_grupo ug
+    ON ug.id_usuario = u.id
+
+LEFT JOIN tbl_grupo g
+    ON g.id = ug.id_grupo
+   AND g.ativo = TRUE
+
+LEFT JOIN (
+    SELECT
+        id_usuario,
+        COUNT(DISTINCT id_conquista) AS total_conquistas
+    FROM tbl_usuario_conquista
+    GROUP BY id_usuario
+) conquistas
+    ON conquistas.id_usuario = u.id
+
+WHERE u.exibir_ranking = TRUE;
+
+
+-- =====================================================
+-- 9. RANKING GERAL
+-- =====================================================
+
+SELECT *
+FROM vwRanking
+ORDER BY xp_usuario DESC;
+
+
+-- =====================================================
+-- 10. RANKING POR INSTITUIÇÃO
+-- Substitua 1 pelo ID desejado.
+-- =====================================================
+
+SELECT *
+FROM vwRanking
+WHERE id_instituicao = 1
+ORDER BY xp_usuario DESC;
+
+
+-- =====================================================
+-- 11. RANKING POR GRUPO
+-- Substitua 1 pelo ID desejado.
+-- =====================================================
+
+SELECT *
+FROM vwRanking
+WHERE id_grupo = 1
+ORDER BY xp_usuario DESC;
+
+
+-- =====================================================
+-- 12. CONFERIR USUÁRIOS, INSTITUIÇÕES E GRUPOS
+-- =====================================================
+
+SELECT
+    u.id AS id_usuario,
+    u.nome AS usuario,
+    i.nome AS instituicao,
+    g.id AS id_grupo,
+    g.nome AS grupo,
+    u.total_xp AS xp
+FROM tbl_usuario u
+
+INNER JOIN tbl_instituicao i
+    ON i.id = u.id_instituicao
+
+LEFT JOIN tbl_usuario_grupo ug
+    ON ug.id_usuario = u.id
+
+LEFT JOIN tbl_grupo g
+    ON g.id = ug.id_grupo
+
+ORDER BY u.nome;
+
+
+-- =====================================================
+-- 13. CONFERIR VISIBILIDADE
+-- =====================================================
+
+SELECT
+    id,
+    nome,
+    exibir_ranking
+FROM tbl_usuario;
+
+
+-- =====================================================
+-- 14. EXEMPLOS DE ATUALIZAÇÃO DE VISIBILIDADE
+-- Execute somente quando necessário.
+-- =====================================================
+
+-- Esconder usuário:
+-- UPDATE tbl_usuario
+-- SET exibir_ranking = FALSE
+-- WHERE id = 1;
+
+-- Exibir usuário:
+-- UPDATE tbl_usuario
+-- SET exibir_ranking = TRUE
+-- WHERE id = 1;
+
+
+-- =====================================================
+-- 15. EXEMPLO DE VÍNCULO DE USUÁRIO AO GRUPO
+-- Substitua o e-mail pelo e-mail real.
+-- O grupo deve pertencer à instituição do usuário.
+-- =====================================================
+
+-- INSERT INTO tbl_usuario_grupo (id_usuario, id_grupo)
+-- SELECT u.id, g.id
+-- FROM tbl_usuario u
+-- INNER JOIN tbl_grupo g
+--     ON g.nome = 'Turma de Sustentabilidade'
+--    AND g.id_instituicao = u.id_instituicao
+-- WHERE u.email = 'EMAIL_DO_USUARIO'
+-- AND NOT EXISTS (
+--     SELECT 1
+--     FROM tbl_usuario_grupo ug
+--     WHERE ug.id_usuario = u.id
+-- );
+
+
+USE db_vibeEco_2026;
+
+-- =====================================================
+-- 1. CATEGORIAS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_categoria (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50) NOT NULL
+);
+
+-- =====================================================
+-- 2. ANEXOS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_anexo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    endereco_url TEXT NOT NULL
+);
+
+-- =====================================================
+-- 3. CONTEÚDOS EDUCATIVOS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    img TEXT NOT NULL,
+    qtde_xp INT NOT NULL DEFAULT 0,
+    duracao_leitura INT NOT NULL DEFAULT 0
+);
+
+-- =====================================================
+-- 4. CONTEÚDO EDUCATIVO + ANEXO
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo_anexo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id_conteudo_educativo INT NOT NULL,
+    id_anexo INT NOT NULL,
+
+    CONSTRAINT FK_CONTEUDOEDUCATIVO_CONTEUDOEDUCATIVOANEXO
+        FOREIGN KEY (id_conteudo_educativo)
+        REFERENCES tbl_conteudo_educativo(id),
+
+    CONSTRAINT FK_ANEXO_CONTEUDOEDUCATIVOANEXO
+        FOREIGN KEY (id_anexo)
+        REFERENCES tbl_anexo(id)
+);
+
+-- =====================================================
+-- 5. CONTEÚDO EDUCATIVO + CATEGORIA
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo_categoria (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id_conteudo_educativo INT NOT NULL,
+    id_categoria INT NOT NULL,
+
+    CONSTRAINT FK_CONTEUDOEDUCATIVO_CONTEUDOEDUCATIVOCATEGORIA
+        FOREIGN KEY (id_conteudo_educativo)
+        REFERENCES tbl_conteudo_educativo(id),
+
+    CONSTRAINT FK_CATEGORIA_CONTEUDOEDUCATIVOCATEGORIA
+        FOREIGN KEY (id_categoria)
+        REFERENCES tbl_categoria(id)
+);
+
+-- =====================================================
+-- 6. USUÁRIO + CONTEÚDO EDUCATIVO
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_usuario_conteudo_educativo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT NOT NULL,
+    id_conteudo_educativo INT NOT NULL,
+    concluido BOOLEAN DEFAULT FALSE,
+    data_acesso DATETIME DEFAULT CURRENT_TIMESTAMP,
+    tempo_acesso INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT FK_UCE_USUARIO
+        FOREIGN KEY (id_usuario)
+        REFERENCES tbl_usuario(id),
+
+    CONSTRAINT FK_UCE_CONTEUDO
+        FOREIGN KEY (id_conteudo_educativo)
+        REFERENCES tbl_conteudo_educativo(id)
+);
+
+-- =====================================================
+-- 7. VERIFICAR AS TABELAS
+-- =====================================================
+
+SHOW TABLES LIKE 'tbl_anexo';
+SHOW TABLES LIKE 'tbl_conteudo_educativo%';
+SHOW TABLES LIKE 'tbl_usuario_conteudo_educativo';
+
+-- =====================================================
+-- 8. CONSULTAR OS DADOS
+-- =====================================================
+
+SELECT * FROM tbl_anexo;
+
+SELECT * FROM tbl_conteudo_educativo;
+
+SELECT * FROM tbl_conteudo_educativo_anexo;
+
+SELECT * FROM tbl_conteudo_educativo_categoria;
+
+SELECT * FROM tbl_usuario_conteudo_educativo;
+
+
+USE db_vibeEco_2026;
+
+-- =====================================================
+-- 1. CATEGORIAS
+-- =====================================================
+
+INSERT INTO tbl_categoria (nome)
+SELECT 'Reciclagem'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_categoria WHERE nome = 'Reciclagem'
+);
+
+INSERT INTO tbl_categoria (nome)
+SELECT 'Sustentabilidade'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_categoria WHERE nome = 'Sustentabilidade'
+);
+
+INSERT INTO tbl_categoria (nome)
+SELECT 'Meio Ambiente'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_categoria WHERE nome = 'Meio Ambiente'
+);
+
+INSERT INTO tbl_categoria (nome)
+SELECT 'Economia de Água'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_categoria WHERE nome = 'Economia de Água'
+);
+
+INSERT INTO tbl_categoria (nome)
+SELECT 'Energia'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_categoria WHERE nome = 'Energia'
+);
+
+-- =====================================================
+-- 2. ANEXOS
+-- =====================================================
+
+INSERT INTO tbl_anexo (nome, endereco_url)
+SELECT 'Guia de Reciclagem', '/uploads/anexos/guia-reciclagem.pdf'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_anexo WHERE nome = 'Guia de Reciclagem'
+);
+
+INSERT INTO tbl_anexo (nome, endereco_url)
+SELECT 'Manual de Sustentabilidade', '/uploads/anexos/manual-sustentabilidade.pdf'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_anexo WHERE nome = 'Manual de Sustentabilidade'
+);
+
+INSERT INTO tbl_anexo (nome, endereco_url)
+SELECT 'Guia de Economia de Água', '/uploads/anexos/economia-agua.pdf'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_anexo WHERE nome = 'Guia de Economia de Água'
+);
+
+INSERT INTO tbl_anexo (nome, endereco_url)
+SELECT 'Cartilha de Energia Limpa', '/uploads/anexos/energia-limpa.pdf'
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_anexo WHERE nome = 'Cartilha de Energia Limpa'
+);
+
+-- =====================================================
+-- 3. CONTEÚDOS EDUCATIVOS
+-- =====================================================
+
+INSERT INTO tbl_conteudo_educativo
+(nome, descricao, img, qtde_xp, duracao_leitura)
+SELECT
+'Como separar o lixo corretamente',
+'Aprenda a separar os resíduos recicláveis e orgânicos e entenda a importância da coleta seletiva.',
+'/uploads/conteudos/reciclagem.jpg',
+20,
+5
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_conteudo_educativo
+    WHERE nome = 'Como separar o lixo corretamente'
+);
+
+INSERT INTO tbl_conteudo_educativo
+(nome, descricao, img, qtde_xp, duracao_leitura)
+SELECT
+'A importância da sustentabilidade',
+'Conheça práticas sustentáveis que ajudam a preservar os recursos naturais e reduzir os impactos ambientais.',
+'/uploads/conteudos/sustentabilidade.jpg',
+30,
+8
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_conteudo_educativo
+    WHERE nome = 'A importância da sustentabilidade'
+);
+
+INSERT INTO tbl_conteudo_educativo
+(nome, descricao, img, qtde_xp, duracao_leitura)
+SELECT
+'Preservação do meio ambiente',
+'Entenda como pequenas atitudes podem contribuir para a proteção da natureza e da biodiversidade.',
+'/uploads/conteudos/meio-ambiente.jpg',
+25,
+6
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_conteudo_educativo
+    WHERE nome = 'Preservação do meio ambiente'
+);
+
+INSERT INTO tbl_conteudo_educativo
+(nome, descricao, img, qtde_xp, duracao_leitura)
+SELECT
+'Como economizar água',
+'Descubra maneiras de evitar o desperdício de água em casa, na escola e em outros ambientes.',
+'/uploads/conteudos/economia-agua.jpg',
+20,
+5
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_conteudo_educativo
+    WHERE nome = 'Como economizar água'
+);
+
+INSERT INTO tbl_conteudo_educativo
+(nome, descricao, img, qtde_xp, duracao_leitura)
+SELECT
+'Energia renovável e limpa',
+'Aprenda sobre fontes renováveis de energia e como elas ajudam a reduzir os impactos ambientais.',
+'/uploads/conteudos/energia-limpa.jpg',
+35,
+10
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_conteudo_educativo
+    WHERE nome = 'Energia renovável e limpa'
+);
+
+-- =====================================================
+-- 4. RELACIONAR CONTEÚDOS COM CATEGORIAS
+-- =====================================================
+
+INSERT INTO tbl_conteudo_educativo_categoria
+(id_conteudo_educativo, id_categoria)
+SELECT ce.id, c.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_categoria c ON c.nome = 'Reciclagem'
+WHERE ce.nome = 'Como separar o lixo corretamente'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_categoria rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_categoria = c.id
+);
+
+INSERT INTO tbl_conteudo_educativo_categoria
+(id_conteudo_educativo, id_categoria)
+SELECT ce.id, c.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_categoria c ON c.nome = 'Sustentabilidade'
+WHERE ce.nome = 'A importância da sustentabilidade'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_categoria rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_categoria = c.id
+);
+
+INSERT INTO tbl_conteudo_educativo_categoria
+(id_conteudo_educativo, id_categoria)
+SELECT ce.id, c.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_categoria c ON c.nome = 'Meio Ambiente'
+WHERE ce.nome = 'Preservação do meio ambiente'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_categoria rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_categoria = c.id
+);
+
+INSERT INTO tbl_conteudo_educativo_categoria
+(id_conteudo_educativo, id_categoria)
+SELECT ce.id, c.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_categoria c ON c.nome = 'Economia de Água'
+WHERE ce.nome = 'Como economizar água'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_categoria rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_categoria = c.id
+);
+
+INSERT INTO tbl_conteudo_educativo_categoria
+(id_conteudo_educativo, id_categoria)
+SELECT ce.id, c.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_categoria c ON c.nome = 'Energia'
+WHERE ce.nome = 'Energia renovável e limpa'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_categoria rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_categoria = c.id
+);
+
+-- =====================================================
+-- 5. RELACIONAR CONTEÚDOS COM ANEXOS
+-- =====================================================
+
+INSERT INTO tbl_conteudo_educativo_anexo
+(id_conteudo_educativo, id_anexo)
+SELECT ce.id, a.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_anexo a ON a.nome = 'Guia de Reciclagem'
+WHERE ce.nome = 'Como separar o lixo corretamente'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_anexo rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_anexo = a.id
+);
+
+INSERT INTO tbl_conteudo_educativo_anexo
+(id_conteudo_educativo, id_anexo)
+SELECT ce.id, a.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_anexo a ON a.nome = 'Manual de Sustentabilidade'
+WHERE ce.nome = 'A importância da sustentabilidade'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_anexo rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_anexo = a.id
+);
+
+INSERT INTO tbl_conteudo_educativo_anexo
+(id_conteudo_educativo, id_anexo)
+SELECT ce.id, a.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_anexo a ON a.nome = 'Guia de Economia de Água'
+WHERE ce.nome = 'Como economizar água'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_anexo rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_anexo = a.id
+);
+
+INSERT INTO tbl_conteudo_educativo_anexo
+(id_conteudo_educativo, id_anexo)
+SELECT ce.id, a.id
+FROM tbl_conteudo_educativo ce
+JOIN tbl_anexo a ON a.nome = 'Cartilha de Energia Limpa'
+WHERE ce.nome = 'Energia renovável e limpa'
+AND NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_anexo rel
+    WHERE rel.id_conteudo_educativo = ce.id
+    AND rel.id_anexo = a.id
+);
+
+-- =====================================================
+-- 6. CONFERIR OS CADASTROS
+-- =====================================================
+
+SELECT * FROM tbl_categoria;
+
+SELECT * FROM tbl_anexo;
+
+SELECT * FROM tbl_conteudo_educativo;
+
+SELECT
+    ce.nome AS conteudo,
+    c.nome AS categoria
+FROM tbl_conteudo_educativo ce
+LEFT JOIN tbl_conteudo_educativo_categoria rel
+    ON rel.id_conteudo_educativo = ce.id
+LEFT JOIN tbl_categoria c
+    ON c.id = rel.id_categoria;
+
+SELECT
+    ce.nome AS conteudo,
+    a.nome AS anexo,
+    a.endereco_url
+FROM tbl_conteudo_educativo ce
+LEFT JOIN tbl_conteudo_educativo_anexo rel
+    ON rel.id_conteudo_educativo = ce.id
+LEFT JOIN tbl_anexo a
+    ON a.id = rel.id_anexo;
+
+
+
+
+-- =====================================================
+-- FIM
+-- =====================================================
+
 -- ============================================================
 -- VERIFICAR TABELAS
 -- ============================================================
+
 
 SHOW TABLES;
