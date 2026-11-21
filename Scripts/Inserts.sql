@@ -233,8 +233,8 @@ INSERT INTO tbl_desafio (
     'Semana sem plástico',
     'Evite utilizar produtos descartáveis durante uma semana.',
     150,
-    '2026-11-01',
-    '2026-11-30',
+    CURDATE(),
+    DATE_ADD(CURDATE(), INTERVAL 30 DAY),
     1,
     1,
     100
@@ -243,8 +243,8 @@ INSERT INTO tbl_desafio (
     'Plantando o futuro',
     'Plante uma árvore e registre sua atividade.',
     300,
-    '2026-11-01',
-    '2026-11-30',
+    CURDATE(),
+    DATE_ADD(CURDATE(), INTERVAL 30 DAY),
     2,
     2,
     100
@@ -253,8 +253,8 @@ INSERT INTO tbl_desafio (
     'Desafio energia consciente',
     'Passe uma semana reduzindo o consumo de energia elétrica.',
     450,
-    '2026-11-01',
-    '2026-11-30',
+    CURDATE(),
+    DATE_ADD(CURDATE(), INTERVAL 30 DAY),
     3,
     1,
     200
@@ -506,7 +506,7 @@ INSERT INTO tbl_usuario_desafio (
     status,
     data_conclusao
 ) VALUES
-(1, 1, 'CONCLUIDO', '2026-11-07 18:00:00'),
+(1, 1, 'CONCLUIDO', NOW()),
 (2, 2, 'EM_ANDAMENTO', NULL),
 (3, 3, 'EM_ANDAMENTO', NULL);
 
