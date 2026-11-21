@@ -1279,8 +1279,234 @@ LEFT JOIN tbl_conteudo_educativo_anexo rel
 LEFT JOIN tbl_anexo a
     ON a.id = rel.id_anexo;
 
+USE db_vibeEco_2026;
+SHOW CREATE PROCEDURE procListarMissaoIdMissaoIdUsuario;
 
+SHOW CREATE TABLE tbl_usuario_missao;
 
+USE db_vibeEco_2026;
+
+SELECT *
+FROM tbl_missao
+WHERE nome = 'Reutilize materiais em casa';
+
+SET @id_missao = (
+    SELECT id
+    FROM tbl_missao
+    WHERE nome = 'Reutilize materiais em casa'
+    ORDER BY id DESC
+    LIMIT 1
+);
+
+INSERT INTO tbl_missao_etapa (
+    id_missao,
+    titulo,
+    xp,
+    ordem
+)
+VALUES
+(
+    @id_missao,
+    'Separe três materiais que poderiam ser reutilizados.',
+    30,
+    1
+),
+(
+    @id_missao,
+    'Transforme um material usado em um novo objeto.',
+    40,
+    2
+),
+(
+    @id_missao,
+    'Compartilhe sua ideia de reutilização com alguém.',
+    30,
+    3
+);
+
+SELECT *
+FROM tbl_missao_etapa
+WHERE id_missao = @id_missao
+ORDER BY ordem;
+USE db_vibeEco_2026;
+
+SELECT
+    m.id,
+    m.nome,
+    m.descricao,
+    m.coins,
+    m.total_xp_missao,
+    m.id_dificuldade,
+    m.data_inicio,
+    m.data_termino
+FROM tbl_missao m
+WHERE m.id = 4;
+
+SELECT *
+FROM tbl_missao_categoria
+WHERE id_missao = 4;
+
+SELECT *
+FROM tbl_categoria;
+
+USE db_vibeEco_2026;
+
+INSERT INTO tbl_missao_categoria (
+    id_missao,
+    id_categoria
+)
+VALUES (
+    4,
+    2
+);
+
+SELECT
+    mc.id_missao,
+    mc.id_categoria,
+    c.nome AS categoria
+FROM tbl_missao_categoria mc
+INNER JOIN tbl_categoria c
+    ON c.id = mc.id_categoria
+WHERE mc.id_missao = 4;
+SHOW PROCEDURE STATUS
+WHERE Db = 'db_vibeEco_2026';
+
+SHOW CREATE PROCEDURE procListarTodasMissoes;
+SHOW CREATE PROCEDURE procListarTodasMissoesDisponiveis;
+SHOW CREATE PROCEDURE procListarTodasMissoes;
+CALL procListarTodasMissoesDisponiveis(1);
+SHOW CREATE PROCEDURE procListarTodasMissoes;
+USE db_vibeeco_2026;
+
+CALL procListarTodasMissoes(1);
+USE db_vibeeco_2026;
+
+SELECT
+    m.id,
+    m.nome,
+    m.id_dificuldade,
+    d.nome AS dificuldade
+FROM tbl_missao m
+LEFT JOIN tbl_dificuldade d
+    ON d.id = m.id_dificuldade
+ORDER BY m.id;
+
+SELECT
+    DATABASE() AS banco,
+    @@hostname AS servidor,
+    @@port AS porta;
+
+SELECT
+    id,
+    nome,
+    descricao,
+    id_dificuldade
+FROM tbl_missao
+ORDER BY id;
+
+SELECT
+    DATABASE() AS banco,
+    @@hostname AS servidor,
+    @@port AS porta;
+
+SELECT
+    COUNT(*) AS total_missoes,
+    MAX(id) AS maior_id
+FROM tbl_missao;
+
+SELECT
+    DATABASE() AS banco,
+    @@hostname AS servidor,
+    @@port AS porta,
+    @@version AS versao;
+    
+    SELECT
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    TABLE_TYPE
+FROM information_schema.TABLES
+WHERE TABLE_NAME = 'tbl_missao';
+
+SELECT
+    id,
+    nome
+FROM db_vibeeco_2026.tbl_missao
+ORDER BY id;
+
+SELECT
+    DATABASE() AS banco,
+    @@hostname AS servidor,
+    @@port AS porta,
+    CURRENT_USER() AS usuario_conexao,
+    USER() AS usuario_cliente;
+
+SELECT
+    id,
+    nome,
+    id_dificuldade
+FROM db_vibeeco_2026.tbl_missao
+ORDER BY id;
+
+SELECT
+    COUNT(*) AS total_missoes,
+    MAX(id) AS maior_id
+FROM db_vibeeco_2026.tbl_missao;
+
+SELECT
+    DATABASE() AS banco,
+    @@hostname AS servidor,
+    @@port AS porta,
+    CURRENT_USER() AS usuario_conexao,
+    USER() AS usuario_cliente;
+
+SELECT
+    id,
+    nome,
+    id_dificuldade
+FROM db_vibeeco_2026.tbl_missao
+ORDER BY id;
+
+SELECT
+    COUNT(*) AS total_missoes,
+    MAX(id) AS maior_id
+FROM db_vibeeco_2026.tbl_missao;
+
+SELECT
+    m.id,
+    m.nome,
+    m.id_dificuldade,
+    d.id AS dificuldade_encontrada
+FROM db_vibeeco_2026.tbl_missao m
+LEFT JOIN db_vibeeco_2026.tbl_dificuldade d
+    ON d.id = m.id_dificuldade
+ORDER BY m.id;
+
+SELECT
+    @@hostname AS servidor,
+    @@port AS porta,
+    @@server_uuid AS server_uuid,
+    @@server_id AS server_id,
+    @@datadir AS diretorio_dados,
+    CURRENT_USER() AS usuario;
+    SELECT
+    id,
+    nome
+FROM db_vibeeco_2026.tbl_missao
+WHERE id = 4;
+
+SELECT
+    @@autocommit AS autocommit,
+    @@transaction_isolation AS isolamento;
+    
+    SELECT id, nome
+FROM db_vibeeco_2026.tbl_missao
+WHERE id = 4;
+
+COMMIT;
+
+SELECT id, nome
+FROM db_vibeeco_2026.tbl_missao
+WHERE id = 4;
 
 -- =====================================================
 -- FIM
