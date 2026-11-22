@@ -1508,6 +1508,180 @@ SELECT id, nome
 FROM db_vibeeco_2026.tbl_missao
 WHERE id = 4;
 
+SHOW CREATE TABLE tbl_usuario;
+
+SHOW CREATE TABLE tbl_instituicao;
+
+SHOW CREATE TABLE tbl_usuario;
+
+SHOW CREATE TABLE tbl_instituicao;
+
+SHOW CREATE TABLE tbl_grupo;
+
+SHOW CREATE TABLE tbl_usuario_grupo;
+
+SHOW CREATE TABLE tbl_usuario;
+
+SHOW CREATE TABLE tbl_instituicao;
+
+SHOW CREATE TABLE tbl_grupo;
+
+SHOW CREATE TABLE tbl_usuario_grupo;
+
+SHOW CREATE VIEW vwranking;
+
+SHOW CREATE TABLE tbl_usuario;
+
+SHOW CREATE TABLE tbl_instituicao;
+
+SHOW CREATE TABLE tbl_grupo;
+
+SHOW CREATE TABLE tbl_usuario_conquista;
+
+SHOW CREATE TABLE tbl_conquista;
+
+-- 1. Ranking geral
+SELECT * FROM vwranking;
+
+-- 2. Verificar usuários e suas instituições
+SELECT
+    u.id,
+    u.nome,
+    i.nome AS instituicao,
+    u.total_xp,
+    u.exibir_ranking
+FROM tbl_usuario u
+JOIN tbl_instituicao i ON i.id = u.id_instituicao
+ORDER BY u.total_xp DESC;
+
+-- 3. Verificar vínculos de grupos
+SELECT
+    ug.id_usuario,
+    u.nome AS usuario,
+    g.nome AS grupo,
+    g.ativo
+FROM tbl_usuario_grupo ug
+JOIN tbl_usuario u ON u.id = ug.id_usuario
+JOIN tbl_grupo g ON g.id = ug.id_grupo;
+
+-- 4. Verificar conquistas por usuário
+SELECT
+    id_usuario,
+    COUNT(DISTINCT id_conquista) AS conquistas
+FROM tbl_usuario_conquista
+GROUP BY id_usuario;
+SHOW TABLES;
+
+SELECT
+    ug.id_usuario,
+    u.nome AS usuario,
+    ug.id_grupo,
+    g.nome AS grupo,
+    g.ativo
+FROM tbl_usuario_grupo ug
+INNER JOIN tbl_usuario u
+    ON u.id = ug.id_usuario
+INNER JOIN tbl_grupo g
+    ON g.id = ug.id_grupo
+ORDER BY ug.id_usuario;
+
+-- 1. Verificar os grupos cadastrados
+SELECT *
+FROM tbl_grupo;
+
+-- 2. Verificar se os usuários estão associados a grupos
+SELECT *
+FROM tbl_usuario_grupo;
+
+-- 3. Verificar a instituição do Lucas
+SELECT
+    id,
+    nome,
+    id_instituicao
+FROM tbl_usuario
+WHERE id = 1;
+
+
+INSERT INTO tbl_grupo (
+    nome,
+    descricao,
+    id_instituicao,
+    ativo
+)
+VALUES (
+    'Grupo Verde',
+    'Grupo de estudantes do projeto VibeEco.',
+    1,
+    1
+);
+
+INSERT INTO tbl_usuario_grupo (
+    id_usuario,
+    id_grupo
+)
+SELECT
+    1,
+    id
+FROM tbl_grupo
+WHERE nome = 'Grupo Verde'
+  AND id_instituicao = 1;
+  
+  SELECT
+    u.nome AS usuario,
+    g.nome AS grupo,
+    i.nome AS instituicao,
+    g.ativo
+FROM tbl_usuario_grupo ug
+INNER JOIN tbl_usuario u
+    ON u.id = ug.id_usuario
+INNER JOIN tbl_grupo g
+    ON g.id = ug.id_grupo
+INNER JOIN tbl_instituicao i
+    ON i.id = g.id_instituicao;
+    
+    -- Conferir se o grupo foi criado
+SELECT *
+FROM tbl_grupo
+WHERE id_instituicao = 1;
+
+-- Conferir se Lucas foi associado
+SELECT *
+FROM tbl_usuario_grupo
+WHERE id_usuario = 1;
+
+-- Conferir o relacionamento completo
+SELECT
+    ug.id_usuario,
+    u.nome AS usuario,
+    ug.id_grupo,
+    g.nome AS grupo,
+    g.id_instituicao,
+    g.ativo
+FROM tbl_usuario_grupo ug
+LEFT JOIN tbl_usuario u
+    ON u.id = ug.id_usuario
+LEFT JOIN tbl_grupo g
+    ON g.id = ug.id_grupo
+WHERE ug.id_usuario = 1;
+
+INSERT INTO tbl_usuario_grupo (
+    id_usuario,
+    id_grupo
+)
+VALUES (1, 1);
+
+COMMIT;
+
+SELECT
+    ug.id,
+    u.nome AS usuario,
+    g.nome AS grupo,
+    g.ativo
+FROM tbl_usuario_grupo ug
+INNER JOIN tbl_usuario u
+    ON u.id = ug.id_usuario
+INNER JOIN tbl_grupo g
+    ON g.id = ug.id_grupo;
 -- =====================================================
 -- FIM
 -- =====================================================
