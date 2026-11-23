@@ -89,6 +89,17 @@ CREATE TABLE IF NOT EXISTS tbl_usuario(
 ALTER TABLE tbl_usuario
 ADD COLUMN exibir_ranking BOOLEAN NOT NULL DEFAULT TRUE;
 
+-- Campos da tela de Perfil (os DAOs de usuário/perfil leem e gravam estas colunas).
+-- Já incluídos aqui para o banco nascer completo; migracao_perfil.sql continua
+-- valendo para bancos antigos (ela só adiciona o que falta).
+ALTER TABLE tbl_usuario
+ADD COLUMN nome_publico VARCHAR(50) NULL,
+ADD COLUMN curso VARCHAR(100) NULL,
+ADD COLUMN localizacao VARCHAR(100) NULL,
+ADD COLUMN bio VARCHAR(160) NULL,
+ADD COLUMN matricula VARCHAR(30) NULL,
+ADD COLUMN data_cadastro DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+
 
 CREATE TABLE IF NOT EXISTS tbl_usuario_adm(
     id int not null primary key auto_increment,
@@ -221,7 +232,7 @@ CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo(
 
 ALTER TABLE tbl_conteudo_educativo ADD COLUMN qtde_xp int not null default 0;
 
-ALTER TABLE tbl_conteudo_educativo ADD COLUMN duracao_leitura int not null;
+ALTER TABLE tbl_conteudo_educativo ADD COLUMN duracao_leitura int not null default 5;
 
 
 

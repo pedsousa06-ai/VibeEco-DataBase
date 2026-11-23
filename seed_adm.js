@@ -1,11 +1,21 @@
-const mysql = require('../backend/node_modules/mysql2/promise');
+// Rode de dentro da pasta do Back-End-Adm (ou aponte para o node_modules dele):
+//   node ../VibeEco-DataBase/seed_adm.js
+// mysql2 é resolvido a partir do projeto do back-end, não de uma pasta "backend" inexistente.
+let mysql
+try {
+  mysql = require('mysql2/promise')
+} catch {
+  mysql = require(require('path').resolve(
+    __dirname, '../VibeEco-Back-End-Adm/node_modules/mysql2/promise'
+  ))
+}
 
 async function seed() {
   const connection = await mysql.createConnection({
     host: '127.0.0.1',
     user: 'root',
     password: 'bcd127',
-    database: 'db_vibeeco_2026'
+    database: 'db_vibeEco_2026'
   });
 
   console.log('Conectado ao MySQL com sucesso.');
