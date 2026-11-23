@@ -1,5 +1,5 @@
 -- =====================================================================
--- triggers de exclusão - banco de dados db_vibeeco_2026
+-- triggers de exclusão - banco de dados db_vibeEco_2026
 --
 -- objetivo:
 --   centralizar a remoção dos registros dependentes antes da exclusão
@@ -10,7 +10,7 @@
 --   necessário configurar on delete cascade nas relações tratadas aqui.
 -- =====================================================================
 
-use db_vibeeco_2026;
+use db_vibeEco_2026;
 
 delimiter $$
 

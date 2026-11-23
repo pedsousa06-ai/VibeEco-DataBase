@@ -1376,10 +1376,10 @@ SHOW CREATE PROCEDURE procListarTodasMissoesDisponiveis;
 SHOW CREATE PROCEDURE procListarTodasMissoes;
 CALL procListarTodasMissoesDisponiveis(1);
 SHOW CREATE PROCEDURE procListarTodasMissoes;
-USE db_vibeeco_2026;
+USE db_vibeEco_2026;
 
 CALL procListarTodasMissoes(1);
-USE db_vibeeco_2026;
+USE db_vibeEco_2026;
 
 SELECT
     m.id,
@@ -1430,7 +1430,7 @@ WHERE TABLE_NAME = 'tbl_missao';
 SELECT
     id,
     nome
-FROM db_vibeeco_2026.tbl_missao
+FROM db_vibeEco_2026.tbl_missao
 ORDER BY id;
 
 SELECT
@@ -1444,13 +1444,13 @@ SELECT
     id,
     nome,
     id_dificuldade
-FROM db_vibeeco_2026.tbl_missao
+FROM db_vibeEco_2026.tbl_missao
 ORDER BY id;
 
 SELECT
     COUNT(*) AS total_missoes,
     MAX(id) AS maior_id
-FROM db_vibeeco_2026.tbl_missao;
+FROM db_vibeEco_2026.tbl_missao;
 
 SELECT
     DATABASE() AS banco,
@@ -1463,21 +1463,21 @@ SELECT
     id,
     nome,
     id_dificuldade
-FROM db_vibeeco_2026.tbl_missao
+FROM db_vibeEco_2026.tbl_missao
 ORDER BY id;
 
 SELECT
     COUNT(*) AS total_missoes,
     MAX(id) AS maior_id
-FROM db_vibeeco_2026.tbl_missao;
+FROM db_vibeEco_2026.tbl_missao;
 
 SELECT
     m.id,
     m.nome,
     m.id_dificuldade,
     d.id AS dificuldade_encontrada
-FROM db_vibeeco_2026.tbl_missao m
-LEFT JOIN db_vibeeco_2026.tbl_dificuldade d
+FROM db_vibeEco_2026.tbl_missao m
+LEFT JOIN db_vibeEco_2026.tbl_dificuldade d
     ON d.id = m.id_dificuldade
 ORDER BY m.id;
 
@@ -1491,7 +1491,7 @@ SELECT
     SELECT
     id,
     nome
-FROM db_vibeeco_2026.tbl_missao
+FROM db_vibeEco_2026.tbl_missao
 WHERE id = 4;
 
 SELECT
@@ -1499,13 +1499,13 @@ SELECT
     @@transaction_isolation AS isolamento;
     
     SELECT id, nome
-FROM db_vibeeco_2026.tbl_missao
+FROM db_vibeEco_2026.tbl_missao
 WHERE id = 4;
 
 COMMIT;
 
 SELECT id, nome
-FROM db_vibeeco_2026.tbl_missao
+FROM db_vibeEco_2026.tbl_missao
 WHERE id = 4;
 
 SHOW CREATE TABLE tbl_usuario;

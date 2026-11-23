@@ -4,7 +4,6 @@
 -- Rodar DEPOIS do Creates.sql / Inserts.sql / SelectsUSER.sql.
 -- ============================================================
 USE db_vibeEco_2026;
-SELECT * FROM perfil WHERE id = 1;
 -- 1. Nome público (ranking e interações)
 SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='db_vibeEco_2026' AND TABLE_NAME='tbl_usuario' AND COLUMN_NAME='nome_publico');
 SET @s := IF(@c=0, "ALTER TABLE tbl_usuario ADD COLUMN nome_publico VARCHAR(50) NULL", "SELECT 'nome_publico ok' AS aviso");
