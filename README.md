@@ -184,3 +184,26 @@ Este projeto foi desenvolvido pela equipe TechProton como parte do projeto VibeE
 | **Categoria** | Tecnologia • Sustentabilidade • Educação |
 | **Status** | Em desenvolvimento |
 | **Início** | 10/08/2026 |
+
+---
+
+## ▶️ Como subir o VibeEco inteiro com dados reais
+
+**1. Banco (escolha um):**
+- Docker: `docker compose up -d` (MySQL 8 na porta 3306, usuário `root`, senha `bcd127`, já com todos os scripts).
+- MySQL instalado: `cd Scripts` e `mysql -u root -p --default-character-set=utf8mb4 < rodar_tudo.sql`.
+
+Ordem dos scripts: `Creates` → `Inserts` → `Procedures de inserts` → `TriggersAdministrador` → `TriggersUsers` → `SelectsUSER` → `migracao_perfil` → `migracao_adm_sincronizar`. As demais `migracao_*.sql` só servem para bancos antigos (o `Creates.sql` atual já inclui tudo).
+
+**2. APIs** (cada uma: `npm install`, copiar `.env.example` para `.env`, `npm start`):
+
+| Projeto | Porta | Endereço base |
+|---|---|---|
+| VibeEco-Back-End-Users | 8080 | `http://localhost:8080/v1/senai/vibeEco` |
+| VibeEco-Back-End-Adm | 8081 | `http://localhost:8081/v1/vibeEco/administrador` |
+
+**3. Fronts** (`npm install` e `npm run dev`): `VibeEco-Front-End-Users` usa a API 8080; `VibeEco-Front-End-Adm` usa a API 8081 (`VITE_API_URL` no `.env`).
+
+**4. App Android:** emulador acessa a API de usuários em `http://10.0.2.2:8080` (já configurado em `AppConfig.kt`).
+
+**Logins de exemplo (Inserts.sql):** painel adm `admin1@vibeeco.com` / `admin123`; usuário comum `lucas.oliveira@email.com` / `senha123` (outros em `Inserts.sql`).
