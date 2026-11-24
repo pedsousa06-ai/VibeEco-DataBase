@@ -23,6 +23,7 @@ services:
       - "./Scripts/SelectsUSER.sql:/docker-entrypoint-initdb.d/06_SelectsUSER.sql:ro"
       - "./Scripts/migracao_perfil.sql:/docker-entrypoint-initdb.d/07_migracao_perfil.sql:ro"
       - "./Scripts/migracao_adm_sincronizar.sql:/docker-entrypoint-initdb.d/08_migracao_adm_sincronizar.sql:ro"
+      - "./Scripts/migracao_auth_usuario.sql:/docker-entrypoint-initdb.d/09_migracao_auth_usuario.sql:ro"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pbcd127"]
       interval: 10s
