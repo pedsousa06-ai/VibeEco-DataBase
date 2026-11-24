@@ -1,0 +1,33 @@
+# Sobe o MySQL do VibeEco já com TODOS os scripts na ordem certa (dados de exemplo incluídos).
+#   docker compose up -d        -> cria o banco db_vibeEco_2026 (porta 3306, root / bcd127)
+#   docker compose down -v      -> apaga tudo para recriar do zero
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: vibeeco-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: bcd127
+      TZ: America/Sao_Paulo
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - vibeeco-dados:/var/lib/mysql
+      # a imagem executa os arquivos de /docker-entrypoint-initdb.d em ordem alfabética
+      - "./Scripts/Creates.sql:/docker-entrypoint-initdb.d/01_Creates.sql:ro"
+      - "./Scripts/Inserts.sql:/docker-entrypoint-initdb.d/02_Inserts.sql:ro"
+      - "./Scripts/Procedures de inserts.sql:/docker-entrypoint-initdb.d/03_Procedures.sql:ro"
+      - "./Scripts/TriggersAdministrador.sql:/docker-entrypoint-initdb.d/04_TriggersAdministrador.sql:ro"
+      - "./Scripts/TriggersUsers.sql:/docker-entrypoint-initdb.d/05_TriggersUsers.sql:ro"
+      - "./Scripts/SelectsUSER.sql:/docker-entrypoint-initdb.d/06_SelectsUSER.sql:ro"
+      - "./Scripts/migracao_perfil.sql:/docker-entrypoint-initdb.d/07_migracao_perfil.sql:ro"
+      - "./Scripts/migracao_adm_sincronizar.sql:/docker-entrypoint-initdb.d/08_migracao_adm_sincronizar.sql:ro"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pbcd127"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  vibeeco-dados:
