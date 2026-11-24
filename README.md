@@ -193,7 +193,7 @@ Este projeto foi desenvolvido pela equipe TechProton como parte do projeto VibeE
 - Docker: `docker compose up -d` (MySQL 8 na porta 3306, usuário `root`, senha `bcd127`, já com todos os scripts).
 - MySQL instalado: `cd Scripts` e `mysql -u root -p --default-character-set=utf8mb4 < rodar_tudo.sql`.
 
-Ordem dos scripts: `Creates` → `Inserts` → `Procedures de inserts` → `TriggersAdministrador` → `TriggersUsers` → `SelectsUSER` → `migracao_perfil` → `migracao_adm_sincronizar`. As demais `migracao_*.sql` só servem para bancos antigos (o `Creates.sql` atual já inclui tudo).
+Ordem dos scripts: `Creates` → `Inserts` → `Procedures de inserts` → `TriggersAdministrador` → `TriggersUsers` → `SelectsUSER` → `migracao_perfil` → `migracao_adm_sincronizar` → `migracao_auth_usuario`. As demais `migracao_*.sql` só servem para bancos antigos (o `Creates.sql` atual já inclui tudo).
 
 **2. APIs** (cada uma: `npm install`, copiar `.env.example` para `.env`, `npm start`):
 

@@ -15,3 +15,4 @@ SOURCE TriggersUsers.sql;
 SOURCE SelectsUSER.sql;
 SOURCE migracao_perfil.sql;
 SOURCE migracao_adm_sincronizar.sql;
+SOURCE migracao_auth_usuario.sql;
