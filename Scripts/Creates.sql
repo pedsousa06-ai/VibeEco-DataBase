@@ -597,4 +597,136 @@ CREATE TABLE IF NOT EXISTS tbl_recompensa_anexo(
 -- VERIFICAR TABELAS
 -- ============================================================
 
+-- =====================================================
+-- 1. VISIBILIDADE DO RANKING
+-- =====================================================
+
+-- Execute somente se a coluna ainda não existir:
+-- ALTER TABLE tbl_usuario
+-- ADD COLUMN exibir_ranking BOOLEAN NOT NULL DEFAULT TRUE;
+
+
+-- =====================================================
+-- 2. CRIAR TABELA DE GRUPOS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_grupo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    id_instituicao INT NOT NULL,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY (id_instituicao)
+        REFERENCES tbl_instituicao(id)
+);
+
+
+-- =====================================================
+-- 3. CRIAR RELACIONAMENTO USUÁRIO E GRUPO
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_usuario_grupo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_grupo INT NOT NULL,
+    data_entrada DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES tbl_usuario(id),
+
+    FOREIGN KEY (id_grupo)
+        REFERENCES tbl_grupo(id),
+
+    UNIQUE (id_usuario),
+
+    INDEX IDX_GRUPO_USUARIO (id_grupo)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_categoria (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50) NOT NULL
+);
+
+-- =====================================================
+-- 2. ANEXOS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_anexo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    endereco_url TEXT NOT NULL
+);
+
+-- =====================================================
+-- 3. CONTEÚDOS EDUCATIVOS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    img TEXT NOT NULL,
+    qtde_xp INT NOT NULL DEFAULT 0,
+    duracao_leitura INT NOT NULL DEFAULT 0
+);
+
+-- =====================================================
+-- 4. CONTEÚDO EDUCATIVO + ANEXO
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo_anexo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id_conteudo_educativo INT NOT NULL,
+    id_anexo INT NOT NULL,
+
+    CONSTRAINT FK_CONTEUDOEDUCATIVO_CONTEUDOEDUCATIVOANEXO
+        FOREIGN KEY (id_conteudo_educativo)
+        REFERENCES tbl_conteudo_educativo(id),
+
+    CONSTRAINT FK_ANEXO_CONTEUDOEDUCATIVOANEXO
+        FOREIGN KEY (id_anexo)
+        REFERENCES tbl_anexo(id)
+);
+
+-- =====================================================
+-- 5. CONTEÚDO EDUCATIVO + CATEGORIA
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_conteudo_educativo_categoria (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id_conteudo_educativo INT NOT NULL,
+    id_categoria INT NOT NULL,
+
+    CONSTRAINT FK_CONTEUDOEDUCATIVO_CONTEUDOEDUCATIVOCATEGORIA
+        FOREIGN KEY (id_conteudo_educativo)
+        REFERENCES tbl_conteudo_educativo(id),
+
+    CONSTRAINT FK_CATEGORIA_CONTEUDOEDUCATIVOCATEGORIA
+        FOREIGN KEY (id_categoria)
+        REFERENCES tbl_categoria(id)
+);
+
+-- =====================================================
+-- 6. USUÁRIO + CONTEÚDO EDUCATIVO
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS tbl_usuario_conteudo_educativo (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT NOT NULL,
+    id_conteudo_educativo INT NOT NULL,
+    concluido BOOLEAN DEFAULT FALSE,
+    data_acesso DATETIME DEFAULT CURRENT_TIMESTAMP,
+    tempo_acesso INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT FK_UCE_USUARIO
+        FOREIGN KEY (id_usuario)
+        REFERENCES tbl_usuario(id),
+
+    CONSTRAINT FK_UCE_CONTEUDO
+        FOREIGN KEY (id_conteudo_educativo)
+        REFERENCES tbl_conteudo_educativo(id)
+);
+
 show tables;

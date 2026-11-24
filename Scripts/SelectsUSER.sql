@@ -48,23 +48,6 @@ create or replace view vwPostCurtidas as
     tbl_post.descricao,
     tbl_post.data_publicacao
 	order by qtde_curtida desc;
-    
-CREATE OR REPLACE VIEW vwRanking AS
-SELECT
-    u.id             AS id,
-    u.nome           AS nome_usuario,
-    u.foto           AS foto_usuario,
-    u.total_xp       AS xp_usuario,
-    e.nome           AS escolaridade,
-    i.nome           AS instituicao,
-    l.nome           AS nome_level,
-    l.numero_level   AS nivel
-FROM tbl_usuario as u
-    INNER JOIN tbl_escolaridade as e ON u.id_escolaridade = e.id
-    INNER JOIN tbl_instituicao  as i ON u.id_instituicao  = i.id
-    INNER JOIN tbl_level_user   as l ON u.id_level        = l.id
-WHERE u.exibir_ranking = TRUE
-ORDER BY u.total_xp DESC;
 
 CREATE OR REPLACE VIEW vwDesafios AS
     SELECT
@@ -86,6 +69,55 @@ CREATE OR REPLACE VIEW vwDesafios AS
 	-- HAVING: filtra por um resultado agregado (depois de agrupar)
     HAVING COUNT(tbl_usuario_desafio.id) >= 1
     ORDER BY qtde_participantes DESC;
+    
+    
+-- =====================================================
+-- 8. CRIAR OU ATUALIZAR VIEW DO RANKING
+-- =====================================================
+
+CREATE OR REPLACE VIEW vwRanking AS
+SELECT
+    u.id AS id,
+    u.nome AS nome_usuario,
+    u.foto AS foto_usuario,
+    u.total_xp AS xp_usuario,
+    u.id_instituicao AS id_instituicao,
+    e.nome AS escolaridade,
+    i.nome AS instituicao,
+    l.nome AS nome_level,
+    l.numero_level AS nivel,
+    COALESCE(conquistas.total_conquistas, 0) AS conquistas,
+    g.id AS id_grupo,
+    g.nome AS nome_grupo
+
+FROM tbl_usuario u
+
+INNER JOIN tbl_escolaridade e
+    ON u.id_escolaridade = e.id
+
+INNER JOIN tbl_instituicao i
+    ON u.id_instituicao = i.id
+
+INNER JOIN tbl_level_user l
+    ON u.id_level = l.id
+
+LEFT JOIN tbl_usuario_grupo ug
+    ON ug.id_usuario = u.id
+
+LEFT JOIN tbl_grupo g
+    ON g.id = ug.id_grupo
+   AND g.ativo = TRUE
+
+LEFT JOIN (
+    SELECT
+        id_usuario,
+        COUNT(DISTINCT id_conquista) AS total_conquistas
+    FROM tbl_usuario_conquista
+    GROUP BY id_usuario
+) conquistas
+    ON conquistas.id_usuario = u.id
+
+WHERE u.exibir_ranking = TRUE;
 
 -- Seleciona todas as missoes, dando preferencia as que estao vinculadas ao usuario e logo em seguida as que nao estao
 DROP PROCEDURE IF EXISTS procListarTodasMissoes;
