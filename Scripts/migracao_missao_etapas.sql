@@ -7,26 +7,6 @@
 
 use db_vibeEco_2026;
 
--- 1) Dica da missão
-alter table tbl_missao
-    add column dica text null after descricao;
-
--- 2) Etapas da missão (cadastradas no painel adm)
-create table if not exists tbl_missao_etapa(
-    id int not null primary key auto_increment,
-    id_missao int not null,
-    titulo varchar(150) not null,
-    xp int not null,
-    ordem int not null,
-
-    constraint FK_MISSAO_MISSAOETAPA
-        foreign key (id_missao)
-        references tbl_missao(id),
-
-    constraint UQ_MISSAO_ORDEM
-        unique (id_missao, ordem)
-);
-
 -- 3) Etapas concluídas por cada usuário
 create table if not exists tbl_usuario_missao_etapa(
     id int not null primary key auto_increment,
