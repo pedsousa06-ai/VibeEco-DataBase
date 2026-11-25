@@ -12,6 +12,15 @@
 
 use db_vibeEco_2026;
 
+ DELIMITER $
+ CREATE TRIGGER tgrDeleteMissao
+	before delete on tbl_missao
+		for each row
+			BEGIN
+				DELETE FROM tbl_missao_categoria 	where id_missao = old.id; -- -> antigo ID que foi solicitado na tbl_post e que sirva como criterio de filtro para deletar nas demais tabelas
+				DELETE FROM tbl_missao_etapa 		where id_missao = old.id;
+            END$
+
 delimiter $$
 
 -- ---------------------------------------------------------------------
