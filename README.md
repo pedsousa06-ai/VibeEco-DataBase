@@ -209,3 +209,8 @@ Ordem dos scripts: `Creates` → `Inserts` → `Procedures de inserts` → `Trig
 **Logins de exemplo (Inserts.sql):** painel adm `admin1@vibeeco.com` / `admin123`; usuário comum `lucas.oliveira@email.com` / `senha123` (outros em `Inserts.sql`).
 
 **Perfil de demonstração (apresentação do TCC):** rode `Scripts/perfil_demonstracao.sql` depois do banco base. Cria a usuária `ana.beatriz@vibeeco.com` / senha `Vibe@2026` (ou matrícula `2024001234`), nível 2 com 795 XP, 270 moedas, ofensiva de 12 dias, missões concluídas/em andamento/disponível, conteúdos lidos, desafios, posts com curtidas e comentários, conquistas, notificações e uma recompensa resgatada. Pode ser rodado várias vezes (recria a demonstração do zero sem mexer nos outros usuários).
+
+
+## Conteúdos extras
+
+`Scripts/conteudos_extras.sql` adiciona 9 conteúdos educativos (texto completo, XP, tempo de leitura, categoria e imagem) e corrige as imagens dos 3 conteúdos originais. É idempotente. As imagens usam loremflickr.com; para fotos definitivas, atualize a coluna `img`.
