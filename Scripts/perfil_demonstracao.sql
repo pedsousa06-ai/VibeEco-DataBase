@@ -1,287 +1,425 @@
--- ============================================================================
---  VibeEco - PERFIL DE DEMONSTRAÇÃO (apresentação do TCC)
---
---  Cria uma usuária completa, com histórico de uso real do sistema:
---    - login pronto:      ana.beatriz@vibeeco.com   |  senha: Vibe@2026   (ou matrícula 2024001234)
---    - nível 2 (Intermediário), 795 XP, 270 moedas, ofensiva de 12 dias
---    - 3 missões concluídas, 2 em andamento (50% e 33%) e 1 disponível para participar
---    - 3 conteúdos lidos, 1 desafio concluído e 1 em andamento
---    - 3 publicações no feed com curtidas e comentários, conquistas, notificações e 1 recompensa resgatada
---
---  COMO USAR
---    1) Rode antes o banco base (Scripts/rodar_tudo.sql ou Creates.sql + Inserts.sql + Procedures).
---    2) Rode este arquivo inteiro. Ele pode ser executado de novo: apaga a demonstração anterior
---       e recria tudo do zero (não mexe nos outros usuários).
---
---  As datas são relativas a hoje (NOW/CURDATE), então o perfil sempre parece "recente".
---  O XP total (795) é exatamente a soma do XP das etapas e conteúdos concluídos abaixo.
--- ============================================================================
-
 USE db_vibeEco_2026;
 
-SET @email := 'ana.beatriz@vibeeco.com';
-SET @uid   := (SELECT id FROM tbl_usuario WHERE email = @email);
+START TRANSACTION;
 
--- ----------------------------------------------------------------------------
--- 0) LIMPEZA DA EXECUÇÃO ANTERIOR (só a demonstração)
--- ----------------------------------------------------------------------------
-DELETE FROM tbl_post_curtida     WHERE id_usuario = @uid OR id_post IN (SELECT id FROM tbl_post WHERE id_usuario = @uid);
-DELETE FROM tbl_post_comentario  WHERE id_usuario = @uid OR id_post IN (SELECT id FROM tbl_post WHERE id_usuario = @uid);
-DELETE FROM tbl_post_categoria   WHERE id_post IN (SELECT id FROM tbl_post WHERE id_usuario = @uid);
-DELETE FROM tbl_post_anexo       WHERE id_post IN (SELECT id FROM tbl_post WHERE id_usuario = @uid);
-DELETE FROM tbl_post             WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario_etapa    WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario_missao   WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario_desafio  WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario_conteudo_educativo WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario_conquista WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario_recompensa WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario_grupo    WHERE id_usuario = @uid;
-DELETE FROM tbl_notificacao      WHERE id_usuario = @uid;
-DELETE FROM tbl_ofensiva         WHERE id_usuario = @uid;
-DELETE FROM tbl_usuario          WHERE id = @uid;
+-- =====================================================
+-- 1. CATEGORIAS
+-- =====================================================
 
--- missões criadas só para a demonstração
-DELETE FROM tbl_missao_categoria WHERE id_missao IN (SELECT id FROM tbl_missao WHERE nome IN
-    ('Semana do descarte consciente','Mutirão de reciclagem','Operação economia de água','Energia sob controle','Compostagem em casa'));
-DELETE FROM tbl_missao_etapa     WHERE id_missao IN (SELECT id FROM tbl_missao WHERE nome IN
-    ('Semana do descarte consciente','Mutirão de reciclagem','Operação economia de água','Energia sob controle','Compostagem em casa'));
-DELETE FROM tbl_missao WHERE nome IN
-    ('Semana do descarte consciente','Mutirão de reciclagem','Operação economia de água','Energia sob controle','Compostagem em casa');
-
--- ----------------------------------------------------------------------------
--- 1) USUÁRIA
---    senha = Vibe@2026 (guardada como hash scrypt, igual ao que o back-end grava)
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_usuario (
-    nome, email, senha, foto, total_xp, coins, data_ultimo_acesso,
-    id_escolaridade, id_status, id_instituicao, id_nivel_acesso, id_level,
-    exibir_ranking, nome_publico, curso, localizacao, bio, matricula, data_cadastro
-) VALUES (
-    'Ana Beatriz Souza',
-    'ana.beatriz@vibeeco.com',
-    'scrypt$3a268a60d5a874298da91dc1046d9888$430d4ead8803959afe48d44d1cbd1106f916707ae72c02dd760353cd246816a2',
-    'https://i.pravatar.cc/300?img=47',
-    795,
-    270,
-    NOW(),
-    (SELECT id FROM tbl_escolaridade WHERE nome = 'Ensino Superior'),
-    (SELECT id FROM tbl_status WHERE is_active = TRUE ORDER BY id LIMIT 1),
-    (SELECT id FROM tbl_instituicao WHERE nome = 'Colégio VibeEco'),
-    (SELECT id FROM tbl_nivel_acesso WHERE nivel = 'Usuário'),
-    (SELECT id FROM tbl_level_user WHERE numero_level = 2),
-    TRUE,
-    'Ana Bia',
-    'Engenharia Ambiental',
-    'Belo Horizonte, MG',
-    'Apaixonada por reciclagem e vida sustentável. Um hábito verde por dia!',
-    '2024001234',
-    NOW() - INTERVAL 45 DAY
+INSERT INTO tbl_categoria (nome)
+SELECT x.nome
+FROM (
+    SELECT 'Reciclagem' AS nome
+    UNION ALL SELECT 'Sustentabilidade'
+    UNION ALL SELECT 'Meio Ambiente'
+    UNION ALL SELECT 'Água'
+    UNION ALL SELECT 'Energia'
+    UNION ALL SELECT 'Biodiversidade'
+    UNION ALL SELECT 'Consumo Consciente'
+    UNION ALL SELECT 'Educação Ambiental'
+) x
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_categoria c WHERE c.nome = x.nome
 );
-SET @uid := LAST_INSERT_ID();
 
--- grupo da instituição
-INSERT INTO tbl_usuario_grupo (id_usuario, id_grupo, data_entrada)
-SELECT @uid, g.id, NOW() - INTERVAL 40 DAY
-  FROM tbl_grupo g
- WHERE g.id_instituicao = (SELECT id_instituicao FROM tbl_usuario WHERE id = @uid)
- ORDER BY g.id LIMIT 1;
+-- =====================================================
+-- 2. DIFICULDADES
+-- =====================================================
 
--- ----------------------------------------------------------------------------
--- 2) OFENSIVA: 12 dias seguidos (hoje não conta se ainda não fez nada; aqui conta)
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_ofensiva (id_usuario, data_ofensiva, concluido)
-SELECT @uid, CURDATE() - INTERVAL n DAY, TRUE
-  FROM (SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
-        UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11) dias;
+INSERT INTO tbl_dificuldade (nome)
+SELECT x.nome
+FROM (
+    SELECT 'Fácil' AS nome
+    UNION ALL SELECT 'Médio'
+    UNION ALL SELECT 'Difícil'
+) x
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_dificuldade d WHERE d.nome = x.nome
+);
 
--- ----------------------------------------------------------------------------
--- 3) MISSÕES (novas, com várias etapas) - prazo: de 25 dias atrás até daqui a 30 dias
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_missao (nome, descricao, coins, total_xp_missao, data_inicio, data_termino, id_dificuldade, dica) VALUES
-('Semana do descarte consciente',
- 'Aprenda a descartar cada tipo de resíduo no lugar certo durante uma semana.',
- 80, 200, CURDATE() - INTERVAL 25 DAY, CURDATE() + INTERVAL 30 DAY,
- (SELECT id FROM tbl_dificuldade WHERE nome = 'Fácil'),
- 'Cada cor de lixeira tem um destino: azul (papel), vermelha (plástico), verde (vidro), amarela (metal).'),
-('Mutirão de reciclagem',
- 'Organize a coleta seletiva da sua casa ou escola e leve os recicláveis ao ponto de entrega.',
- 90, 200, CURDATE() - INTERVAL 25 DAY, CURDATE() + INTERVAL 30 DAY,
- (SELECT id FROM tbl_dificuldade WHERE nome = 'Médio'),
- 'Lave as embalagens antes de separar: isso evita mau cheiro e facilita a reciclagem.'),
-('Operação economia de água',
- 'Reduza o consumo de água da sua rotina com pequenas mudanças de hábito.',
- 120, 220, CURDATE() - INTERVAL 25 DAY, CURDATE() + INTERVAL 30 DAY,
- (SELECT id FROM tbl_dificuldade WHERE nome = 'Médio'),
- 'Um banho de 5 minutos já economiza dezenas de litros por dia.'),
-('Energia sob controle',
- 'Descubra onde sua energia é desperdiçada e corte o consumo desnecessário.',
- 150, 250, CURDATE() - INTERVAL 25 DAY, CURDATE() + INTERVAL 30 DAY,
- (SELECT id FROM tbl_dificuldade WHERE nome = 'Difícil'),
- 'Aparelhos em stand-by continuam gastando energia: tire da tomada o que não usa.'),
-('Compostagem em casa',
- 'Transforme restos de comida em adubo e reduza o lixo orgânico.',
- 100, 150, CURDATE() - INTERVAL 5 DAY, CURDATE() + INTERVAL 45 DAY,
- (SELECT id FROM tbl_dificuldade WHERE nome = 'Fácil'),
- 'Restos de frutas, legumes e borra de café podem ir para a composteira.');
+-- =====================================================
+-- 3. TIPOS DE DESAFIO
+-- =====================================================
 
-SET @m_descarte := (SELECT id FROM tbl_missao WHERE nome = 'Semana do descarte consciente');
-SET @m_mutirao  := (SELECT id FROM tbl_missao WHERE nome = 'Mutirão de reciclagem');
-SET @m_agua     := (SELECT id FROM tbl_missao WHERE nome = 'Operação economia de água');
-SET @m_energia  := (SELECT id FROM tbl_missao WHERE nome = 'Energia sob controle');
-SET @m_compost  := (SELECT id FROM tbl_missao WHERE nome = 'Compostagem em casa');
-SET @m_lixo     := (SELECT id FROM tbl_missao WHERE nome = 'Separe seu lixo' LIMIT 1);
+INSERT INTO tbl_tipo_desafio (nome)
+SELECT x.nome
+FROM (
+    SELECT 'Individual' AS nome
+    UNION ALL SELECT 'Coletivo'
+) x
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_tipo_desafio t WHERE t.nome = x.nome
+);
 
-INSERT INTO tbl_missao_categoria (id_missao, id_categoria) VALUES
-(@m_descarte, (SELECT id FROM tbl_categoria WHERE nome = 'Reciclagem')),
-(@m_mutirao,  (SELECT id FROM tbl_categoria WHERE nome = 'Reciclagem')),
-(@m_agua,     (SELECT id FROM tbl_categoria WHERE nome = 'Uso consciente da água')),
-(@m_energia,  (SELECT id FROM tbl_categoria WHERE nome = 'Sustentabilidade')),
-(@m_compost,  (SELECT id FROM tbl_categoria WHERE nome = 'Sustentabilidade'));
+-- =====================================================
+-- 4. CADASTRO DOS 10 PERFIS
+-- =====================================================
 
--- Etapas (a soma do XP das etapas de cada missão = total_xp_missao)
-INSERT INTO tbl_missao_etapa (id_missao, titulo, xp, ordem) VALUES
-(@m_descarte, 'Descubra o que vai em cada cor de lixeira.',                     40, 1),
-(@m_descarte, 'Separe o lixo da sua casa por três dias seguidos.',              40, 2),
-(@m_descarte, 'Ensine alguém da família a separar corretamente.',               60, 3),
-(@m_descarte, 'Leve os recicláveis até um ponto de coleta.',                    60, 4),
-(@m_mutirao,  'Monte um ponto de coleta seletiva em casa ou na escola.',        60, 1),
-(@m_mutirao,  'Convide pelo menos três pessoas para participar.',               60, 2),
-(@m_mutirao,  'Entregue os materiais em uma cooperativa ou ecoponto.',          80, 3),
-(@m_agua,     'Meça quanto tempo dura o seu banho.',                            40, 1),
-(@m_agua,     'Feche a torneira ao escovar os dentes e ensaboar a louça.',      50, 2),
-(@m_agua,     'Reaproveite a água da máquina de lavar ou da chuva.',            60, 3),
-(@m_agua,     'Verifique e conserte vazamentos em torneiras e descargas.',      70, 4),
-(@m_energia,  'Faça um passeio pela casa anotando o que fica ligado sem uso.',  50, 1),
-(@m_energia,  'Troque uma lâmpada comum por uma de LED.',                       80, 2),
-(@m_energia,  'Passe uma semana desligando aparelhos da tomada.',              120, 3),
-(@m_compost,  'Separe uma caixa para os restos orgânicos.',                     40, 1),
-(@m_compost,  'Monte a composteira seguindo o passo a passo.',                  50, 2),
-(@m_compost,  'Acompanhe a decomposição por duas semanas.',                     60, 3);
+INSERT INTO tbl_usuario (
+    nome, email, senha, foto, total_xp, coins,
+    data_ultimo_acesso, id_escolaridade, id_status,
+    id_instituicao, id_nivel_acesso, id_level,
+    exibir_ranking, nome_publico, curso, localizacao,
+    bio, matricula, idioma, tema, alto_contraste,
+    tamanho_fonte, animacoes, atividades_visiveis,
+    perfil_publico
+)
+SELECT
+    p.nome,
+    p.email,
+    p.senha,
+    p.foto,
+    p.xp,
+    p.coins,
+    NOW(),
+    (SELECT id FROM tbl_escolaridade ORDER BY id LIMIT 1),
+    (SELECT id FROM tbl_status WHERE is_active = TRUE ORDER BY id LIMIT 1),
+    COALESCE(
+        (SELECT id FROM tbl_instituicao WHERE nome = 'SENAI' ORDER BY id LIMIT 1),
+        (SELECT id FROM tbl_instituicao ORDER BY id LIMIT 1)
+    ),
+    COALESCE(
+        (SELECT id FROM tbl_nivel_acesso WHERE nivel = 'Usuário' ORDER BY id LIMIT 1),
+        (SELECT id FROM tbl_nivel_acesso ORDER BY id LIMIT 1)
+    ),
+    COALESCE(
+        (SELECT id FROM tbl_level_user WHERE xp_necessario <= p.xp ORDER BY xp_necessario DESC LIMIT 1),
+        (SELECT id FROM tbl_level_user ORDER BY xp_necessario LIMIT 1)
+    ),
+    TRUE,
+    p.nome_publico,
+    p.curso,
+    p.localizacao,
+    p.bio,
+    p.matricula,
+    'pt-BR',
+    'claro',
+    FALSE,
+    'medio',
+    TRUE,
+    TRUE,
+    TRUE
+FROM (
+    SELECT 'Gabriel Oliveira' AS nome, 'gabriel.ranking@vibeeco.com' AS email,
+    'ranking_sem_login' AS senha, 'https://i.pravatar.cc/150?img=12' AS foto,
+    12000 AS xp, 1500 AS coins, 'Gabriel' AS nome_publico,
+    'Meio Ambiente' AS curso, 'São Paulo' AS localizacao,
+    'Sempre buscando novas atitudes sustentáveis.' AS bio, 'RANK001' AS matricula
 
--- ----------------------------------------------------------------------------
--- 4) PARTICIPAÇÃO EM MISSÕES
---    progresso segue a regra da procedure procConcluirEtapa: FLOOR(concluídas*100/total)
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_usuario_missao (id_usuario, id_missao, status, progresso, data_conclusao) VALUES
-(@uid, @m_lixo,     'CONCLUIDA',    100, NOW() - INTERVAL 20 DAY),
-(@uid, @m_descarte, 'CONCLUIDA',    100, NOW() - INTERVAL 14 DAY),
-(@uid, @m_mutirao,  'CONCLUIDA',    100, NOW() - INTERVAL 6 DAY),
-(@uid, @m_agua,     'EM_ANDAMENTO',  50, NULL),
-(@uid, @m_energia,  'EM_ANDAMENTO',  33, NULL);
--- "Compostagem em casa" fica sem participação: aparece como DISPONÍVEL no app.
+    UNION ALL SELECT 'Ana Beatriz', 'ana.beatriz@vibeeco.com',
+    'Vibe@2026', 'https://i.pravatar.cc/150?img=47',
+    11000, 1300, 'Ana Beatriz', 'Desenvolvimento de Sistemas',
+    'Jandira - SP', 'Apaixonada por sustentabilidade e tecnologia.', 'VIBE2026'
 
--- Etapas concluídas (cada uma com a data em que foi feita)
-INSERT INTO tbl_usuario_etapa (id_usuario, id_etapa, data_conclusao)
-SELECT @uid, e.id, NOW() - INTERVAL 20 DAY FROM tbl_missao_etapa e WHERE e.id_missao = @m_lixo;
+    UNION ALL SELECT 'Mariana Santos', 'mariana.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=44',
+    9500, 1100, 'Mariana', 'Meio Ambiente', 'São Paulo',
+    'Pequenas atitudes fazem a diferença.', 'RANK003'
 
-INSERT INTO tbl_usuario_etapa (id_usuario, id_etapa, data_conclusao)
-SELECT @uid, e.id, NOW() - INTERVAL (20 - e.ordem * 2) DAY FROM tbl_missao_etapa e WHERE e.id_missao = @m_descarte;
+    UNION ALL SELECT 'Lucas Oliveira', 'lucas.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=11',
+    8500, 1000, 'Lucas', 'Administração', 'Osasco - SP',
+    'Comprometido com um futuro mais verde.', 'RANK004'
 
-INSERT INTO tbl_usuario_etapa (id_usuario, id_etapa, data_conclusao)
-SELECT @uid, e.id, NOW() - INTERVAL (12 - e.ordem * 2) DAY FROM tbl_missao_etapa e WHERE e.id_missao = @m_mutirao;
+    UNION ALL SELECT 'Isabela Costa', 'isabela.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=45',
+    7500, 900, 'Isabela', 'Meio Ambiente', 'Barueri - SP',
+    'Acredito na transformação ambiental.', 'RANK005'
 
-INSERT INTO tbl_usuario_etapa (id_usuario, id_etapa, data_conclusao)
-SELECT @uid, e.id, NOW() - INTERVAL (5 - e.ordem) DAY FROM tbl_missao_etapa e WHERE e.id_missao = @m_agua AND e.ordem <= 2;
+    UNION ALL SELECT 'Rafael Mendes', 'rafael.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=13',
+    6500, 800, 'Rafael', 'Logística', 'Jandira - SP',
+    'Aprendendo e praticando sustentabilidade.', 'RANK006'
 
-INSERT INTO tbl_usuario_etapa (id_usuario, id_etapa, data_conclusao)
-SELECT @uid, e.id, NOW() - INTERVAL 1 DAY FROM tbl_missao_etapa e WHERE e.id_missao = @m_energia AND e.ordem = 1;
+    UNION ALL SELECT 'Beatriz Almeida', 'beatriz.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=49',
+    5500, 700, 'Beatriz', 'Desenvolvimento de Sistemas', 'São Paulo',
+    'Cuidar do planeta é responsabilidade de todos.', 'RANK007'
 
--- ----------------------------------------------------------------------------
--- 5) CONTEÚDOS EDUCATIVOS LIDOS (XP: 50 + 75 + 100 = 225)
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_usuario_conteudo_educativo (id_usuario, id_conteudo_educativo, concluido, data_acesso, tempo_acesso)
-SELECT @uid, c.id, TRUE, NOW() - INTERVAL (c.id + 3) DAY, c.duracao_leitura * 60
-  FROM tbl_conteudo_educativo c
- WHERE c.nome IN ('A importância da reciclagem', 'Consumo consciente de água', 'Como economizar energia');
+    UNION ALL SELECT 'Matheus Ferreira', 'matheus.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=14',
+    4500, 600, 'Matheus', 'Administração', 'Carapicuíba - SP',
+    'Buscando hábitos melhores todos os dias.', 'RANK008'
 
--- ----------------------------------------------------------------------------
--- 6) DESAFIOS
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_usuario_desafio (id_usuario, id_desafio, status, progresso, data_conclusao)
-SELECT @uid, d.id, 'CONCLUIDO', 100, NOW() - INTERVAL 9 DAY FROM tbl_desafio d WHERE d.nome = 'Semana sem plástico';
-INSERT INTO tbl_usuario_desafio (id_usuario, id_desafio, status, progresso, data_conclusao)
-SELECT @uid, d.id, 'EM_ANDAMENTO', 40, NULL FROM tbl_desafio d WHERE d.nome = 'Plantando o futuro';
+    UNION ALL SELECT 'Julia Rodrigues', 'julia.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=48',
+    3500, 500, 'Julia', 'Meio Ambiente', 'Barueri - SP',
+    'A sustentabilidade começa nas nossas escolhas.', 'RANK009'
 
--- ----------------------------------------------------------------------------
--- 7) CONQUISTAS
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_usuario_conquista (id_usuario, id_conquista, data_conquista)
-SELECT @uid, q.id, NOW() - INTERVAL
-       CASE q.nome WHEN 'Primeiro passo' THEN 20 WHEN 'Amigo do planeta' THEN 10 ELSE 4 END DAY
-  FROM tbl_conquista q
- WHERE q.nome IN ('Primeiro passo', 'Amigo do planeta', 'Consciência verde');
+    UNION ALL SELECT 'Pedro Henrique', 'pedro.ranking@vibeeco.com',
+    'ranking_sem_login', 'https://i.pravatar.cc/150?img=15',
+    2500, 400, 'Pedro', 'Desenvolvimento de Sistemas', 'Osasco - SP',
+    'Um passo de cada vez por um mundo melhor.', 'RANK010'
+) p
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_usuario u WHERE u.email = p.email
+);
 
--- ----------------------------------------------------------------------------
--- 8) FEED: 3 publicações dela + curtidas e comentários de outros usuários
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_post (id_usuario, descricao, data_publicacao) VALUES
-(@uid, 'Terminei o Mutirão de reciclagem! Juntamos mais de 30 kg de recicláveis com a turma e levamos tudo para o ecoponto. ♻️', NOW() - INTERVAL 6 DAY),
-(@uid, 'Dica de hoje: meça o tempo do seu banho. Eu estava gastando 15 minutos e já cheguei em 6. Cada minuto conta! 💧', NOW() - INTERVAL 3 DAY),
-(@uid, '12 dias de ofensiva no VibeEco! Quem mais está mantendo o ritmo? 🌱', NOW() - INTERVAL 4 HOUR);
+-- =====================================================
+-- 5. CONTEÚDOS EDUCATIVOS
+-- =====================================================
 
-SET @p1 := (SELECT id FROM tbl_post WHERE id_usuario = @uid ORDER BY data_publicacao ASC  LIMIT 1);
-SET @p2 := (SELECT id FROM tbl_post WHERE id_usuario = @uid ORDER BY data_publicacao ASC  LIMIT 1 OFFSET 1);
-SET @p3 := (SELECT id FROM tbl_post WHERE id_usuario = @uid ORDER BY data_publicacao DESC LIMIT 1);
+INSERT INTO tbl_conteudo_educativo
+(nome, descricao, img, qtde_xp, duracao_leitura)
+SELECT x.nome, x.descricao, x.img, x.xp, x.duracao
+FROM (
+    SELECT
+    'A importância das florestas' AS nome,
+    'As florestas são essenciais para o equilíbrio ambiental. Elas absorvem gás carbônico, produzem oxigênio, regulam o clima e abrigam milhares de espécies. Preservar as florestas é proteger a biodiversidade e garantir recursos naturais para as próximas gerações.' AS descricao,
+    '/uploads/conteudos/florestas.jpg' AS img, 50 AS xp, 5 AS duracao
 
-INSERT INTO tbl_post_categoria (id_post, id_categoria) VALUES
-(@p1, (SELECT id FROM tbl_categoria WHERE nome = 'Reciclagem')),
-(@p2, (SELECT id FROM tbl_categoria WHERE nome = 'Uso consciente da água')),
-(@p3, (SELECT id FROM tbl_categoria WHERE nome = 'Sustentabilidade'));
+    UNION ALL SELECT
+    'O caminho do lixo',
+    'O descarte correto dos resíduos é fundamental para evitar a poluição. A separação entre materiais recicláveis, orgânicos e rejeitos facilita a coleta seletiva e reduz a quantidade de lixo enviada aos aterros.',
+    '/uploads/conteudos/caminho-do-lixo.jpg', 40, 4
 
--- curtidas dos outros usuários nos posts dela
-INSERT INTO tbl_post_curtida (id_usuario, id_post, data_curtida)
-SELECT u.id, p.id, NOW() - INTERVAL 2 HOUR
-  FROM tbl_usuario u
- CROSS JOIN (SELECT @p1 AS id UNION SELECT @p2 UNION SELECT @p3) p
- WHERE u.id <> @uid AND u.id_nivel_acesso = (SELECT id FROM tbl_nivel_acesso WHERE nivel = 'Usuário');
+    UNION ALL SELECT
+    'Biodiversidade brasileira',
+    'O Brasil possui uma das maiores biodiversidades do planeta. Seus biomas abrigam espécies únicas de animais e plantas que precisam de proteção contra o desmatamento, a poluição e a exploração irregular.',
+    '/uploads/conteudos/biodiversidade.jpg', 60, 6
 
--- comentários
-INSERT INTO tbl_post_comentario (id_usuario, id_post, comentario, data_comentario)
-SELECT u.id, @p1, 'Que iniciativa incrível, Ana! Vou levar essa ideia para a minha turma.', NOW() - INTERVAL 5 DAY
-  FROM tbl_usuario u WHERE u.email = 'mariana.santos@email.com';
-INSERT INTO tbl_post_comentario (id_usuario, id_post, comentario, data_comentario)
-SELECT u.id, @p2, 'Boa dica! Eu também reduzi o meu banho depois de cronometrar.', NOW() - INTERVAL 2 DAY
-  FROM tbl_usuario u WHERE u.email = 'lucas.oliveira@email.com';
-INSERT INTO tbl_post_comentario (id_usuario, id_post, comentario, data_comentario)
-SELECT u.id, @p3, 'Parabéns pela ofensiva! Continue assim 👏', NOW() - INTERVAL 1 HOUR
-  FROM tbl_usuario u WHERE u.email = 'pedro.almeida@email.com';
+    UNION ALL SELECT
+    'Energia solar no cotidiano',
+    'A energia solar utiliza a luz do sol para gerar eletricidade e aquecer água. É uma alternativa renovável que pode reduzir a dependência de fontes poluentes e contribuir para uma matriz energética mais sustentável.',
+    '/uploads/conteudos/energia-solar.jpg', 45, 5
 
--- ela também curte e comenta posts dos outros
-INSERT INTO tbl_post_curtida (id_usuario, id_post, data_curtida)
-SELECT @uid, p.id, NOW() - INTERVAL 1 DAY FROM tbl_post p WHERE p.id_usuario <> @uid;
-INSERT INTO tbl_post_comentario (id_usuario, id_post, comentario, data_comentario)
-SELECT @uid, p.id, 'Adorei! Continue compartilhando seus hábitos sustentáveis.', NOW() - INTERVAL 1 DAY
-  FROM tbl_post p WHERE p.id_usuario <> @uid ORDER BY p.id LIMIT 1;
+    UNION ALL SELECT
+    'Compostagem e adubo natural',
+    'A compostagem transforma resíduos orgânicos em adubo natural. Cascas de frutas, restos de verduras e folhas secas podem ser reaproveitados para enriquecer o solo e diminuir o volume de resíduos.',
+    '/uploads/conteudos/compostagem.jpg', 50, 5
 
--- ----------------------------------------------------------------------------
--- 9) RECOMPENSA RESGATADA (Caneca ecológica = 100 moedas)
---    moedas: 80 + 50 + 90 (missões) + 150 (desafio) - 100 (resgate) = 270
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_usuario_recompensa (id_usuario, id_recompensa, data_resgate, codigo_resgate)
-SELECT @uid, r.id, NOW() - INTERVAL 2 DAY, 'VIBE-ANA-CNC-2026'
-  FROM tbl_recompensa r WHERE r.nome = 'Caneca ecológica';
+    UNION ALL SELECT
+    'Consumo consciente de plástico',
+    'Reduzir o consumo de plástico descartável ajuda a diminuir a poluição dos rios e oceanos. Priorizar produtos reutilizáveis e separar embalagens para reciclagem são atitudes importantes.',
+    '/uploads/conteudos/plastico.jpg', 40, 4
 
--- ----------------------------------------------------------------------------
--- 10) NOTIFICAÇÕES (3 não lidas)
--- ----------------------------------------------------------------------------
-INSERT INTO tbl_notificacao (id_usuario, titulo, mensagem, lida, data_criacao) VALUES
-(@uid, 'Missão concluída!',        'Parabéns! Você concluiu o Mutirão de reciclagem e ganhou 90 moedas.',          TRUE,  NOW() - INTERVAL 6 DAY),
-(@uid, 'Nova conquista',           'Você desbloqueou a conquista "Consciência verde".',                           TRUE,  NOW() - INTERVAL 4 DAY),
-(@uid, 'Recompensa resgatada',     'Sua Caneca ecológica foi resgatada. Código: VIBE-ANA-CNC-2026.',               TRUE,  NOW() - INTERVAL 2 DAY),
-(@uid, 'Nova missão disponível',   'A missão "Compostagem em casa" já está disponível. Participe!',               FALSE, NOW() - INTERVAL 5 DAY),
-(@uid, 'Sua ofensiva está ótima',  'Você está há 12 dias seguidos ativo no VibeEco. Não quebre a sequência!',      FALSE, NOW() - INTERVAL 3 HOUR),
-(@uid, 'Ana, você subiu no ranking','Você está em 2º lugar no ranking geral. Continue assim!',                      FALSE, NOW() - INTERVAL 1 HOUR);
+    UNION ALL SELECT
+    'Economia de água em casa',
+    'Pequenas mudanças de hábito ajudam a economizar água. Fechar a torneira ao escovar os dentes, consertar vazamentos e reutilizar água sempre que possível são atitudes que fazem diferença.',
+    '/uploads/conteudos/economia-agua.jpg', 35, 4
 
--- ----------------------------------------------------------------------------
--- 11) CONFERÊNCIA (mostra o resumo da usuária criada)
--- ----------------------------------------------------------------------------
-SELECT u.id, u.nome, u.email, u.matricula, l.nome AS nivel, u.total_xp, u.coins,
-       (SELECT COUNT(*) FROM tbl_usuario_missao  WHERE id_usuario = u.id AND status = 'CONCLUIDA')    AS missoes_concluidas,
-       (SELECT COUNT(*) FROM tbl_usuario_missao  WHERE id_usuario = u.id AND status = 'EM_ANDAMENTO') AS missoes_andamento,
-       (SELECT COUNT(*) FROM tbl_usuario_conteudo_educativo WHERE id_usuario = u.id AND concluido = TRUE) AS conteudos_lidos,
-       (SELECT COUNT(*) FROM tbl_ofensiva        WHERE id_usuario = u.id AND concluido = TRUE)        AS dias_ofensiva,
-       (SELECT COUNT(*) FROM tbl_post            WHERE id_usuario = u.id)                             AS posts
-  FROM tbl_usuario u
-  JOIN tbl_level_user l ON l.id = u.id_level
- WHERE u.id = @uid;
+    UNION ALL SELECT
+    'Mobilidade urbana sustentável',
+    'Caminhar, utilizar bicicletas e optar pelo transporte coletivo são alternativas que podem reduzir a emissão de poluentes e melhorar a qualidade de vida nas cidades.',
+    '/uploads/conteudos/mobilidade.jpg', 45, 5
+) x
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_conteudo_educativo c WHERE c.nome = x.nome
+);
+
+-- =====================================================
+-- 6. RELACIONAR CONTEÚDOS E CATEGORIAS
+-- =====================================================
+
+INSERT INTO tbl_conteudo_educativo_categoria
+(id_conteudo_educativo, id_categoria)
+SELECT c.id, cat.id
+FROM (
+    SELECT 'A importância das florestas' AS conteudo, 'Biodiversidade' AS categoria
+    UNION ALL SELECT 'O caminho do lixo', 'Reciclagem'
+    UNION ALL SELECT 'Biodiversidade brasileira', 'Meio Ambiente'
+    UNION ALL SELECT 'Energia solar no cotidiano', 'Energia'
+    UNION ALL SELECT 'Compostagem e adubo natural', 'Reciclagem'
+    UNION ALL SELECT 'Consumo consciente de plástico', 'Consumo Consciente'
+    UNION ALL SELECT 'Economia de água em casa', 'Água'
+    UNION ALL SELECT 'Mobilidade urbana sustentável', 'Sustentabilidade'
+) x
+JOIN tbl_conteudo_educativo c ON c.nome = x.conteudo
+JOIN tbl_categoria cat ON cat.nome = x.categoria
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM tbl_conteudo_educativo_categoria rel
+    WHERE rel.id_conteudo_educativo = c.id
+      AND rel.id_categoria = cat.id
+);
+
+-- =====================================================
+-- 7. MISSÕES
+-- =====================================================
+
+INSERT INTO tbl_missao
+(nome, descricao, coins, total_xp_missao, data_inicio, data_termino, id_dificuldade, dica)
+SELECT
+    x.nome,
+    x.descricao,
+    x.coins,
+    x.xp,
+    CURDATE(),
+    DATE_ADD(CURDATE(), INTERVAL 30 DAY),
+    d.id,
+    x.dica
+FROM (
+    SELECT 'Desafio do lixo zero' AS nome,
+    'Reduza a produção de resíduos durante sua rotina e pratique o descarte correto.' AS descricao,
+    100 AS coins, 200 AS xp, 'Fácil' AS dificuldade,
+    'Separe os resíduos e evite produtos descartáveis.' AS dica
+
+    UNION ALL SELECT 'Horta sustentável',
+    'Monte ou cuide de uma pequena horta e aprenda sobre cultivo sustentável.',
+    150, 300, 'Médio',
+    'Utilize compostagem para enriquecer o solo.'
+
+    UNION ALL SELECT 'Consumo consciente',
+    'Adote hábitos de consumo responsáveis e evite desperdícios.',
+    120, 250, 'Médio',
+    'Antes de comprar, avalie se o produto é realmente necessário.'
+
+    UNION ALL SELECT 'Protetores da biodiversidade',
+    'Conheça e divulgue ações que ajudam a proteger a fauna e a flora.',
+    180, 350, 'Difícil',
+    'Pesquise espécies ameaçadas e formas de preservação.'
+
+    UNION ALL SELECT 'Semana da mobilidade verde',
+    'Experimente alternativas sustentáveis de deslocamento.',
+    100, 200, 'Fácil',
+    'Priorize caminhadas, bicicletas e transporte coletivo.'
+) x
+JOIN tbl_dificuldade d ON d.nome = x.dificuldade
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_missao m WHERE m.nome = x.nome
+);
+
+-- =====================================================
+-- 8. CATEGORIAS DAS MISSÕES
+-- =====================================================
+
+INSERT INTO tbl_missao_categoria (id_missao, id_categoria)
+SELECT m.id, c.id
+FROM (
+    SELECT 'Desafio do lixo zero' AS missao, 'Reciclagem' AS categoria
+    UNION ALL SELECT 'Horta sustentável', 'Sustentabilidade'
+    UNION ALL SELECT 'Consumo consciente', 'Consumo Consciente'
+    UNION ALL SELECT 'Protetores da biodiversidade', 'Biodiversidade'
+    UNION ALL SELECT 'Semana da mobilidade verde', 'Meio Ambiente'
+) x
+JOIN tbl_missao m ON m.nome = x.missao
+JOIN tbl_categoria c ON c.nome = x.categoria
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_missao_categoria mc
+    WHERE mc.id_missao = m.id AND mc.id_categoria = c.id
+);
+
+-- =====================================================
+-- 9. ETAPAS DAS MISSÕES
+-- =====================================================
+
+INSERT INTO tbl_missao_etapa (id_missao, titulo, xp, ordem)
+SELECT m.id, x.titulo, x.xp, x.ordem
+FROM (
+    SELECT 'Desafio do lixo zero' AS missao, 'Identificar os resíduos produzidos em casa' AS titulo, 40 AS xp, 1 AS ordem
+    UNION ALL SELECT 'Desafio do lixo zero', 'Separar materiais recicláveis', 50, 2
+    UNION ALL SELECT 'Desafio do lixo zero', 'Reduzir o uso de descartáveis', 50, 3
+    UNION ALL SELECT 'Desafio do lixo zero', 'Descartar os resíduos corretamente', 60, 4
+
+    UNION ALL SELECT 'Horta sustentável', 'Escolher o local da horta', 50, 1
+    UNION ALL SELECT 'Horta sustentável', 'Preparar o solo', 70, 2
+    UNION ALL SELECT 'Horta sustentável', 'Plantar sementes ou mudas', 80, 3
+    UNION ALL SELECT 'Horta sustentável', 'Cuidar das plantas', 100, 4
+
+    UNION ALL SELECT 'Consumo consciente', 'Analisar hábitos de consumo', 50, 1
+    UNION ALL SELECT 'Consumo consciente', 'Evitar compras desnecessárias', 60, 2
+    UNION ALL SELECT 'Consumo consciente', 'Priorizar produtos reutilizáveis', 60, 3
+    UNION ALL SELECT 'Consumo consciente', 'Compartilhar boas práticas', 80, 4
+
+    UNION ALL SELECT 'Protetores da biodiversidade', 'Pesquisar espécies locais', 70, 1
+    UNION ALL SELECT 'Protetores da biodiversidade', 'Identificar ameaças ambientais', 80, 2
+    UNION ALL SELECT 'Protetores da biodiversidade', 'Conhecer ações de preservação', 100, 3
+    UNION ALL SELECT 'Protetores da biodiversidade', 'Divulgar a importância da proteção', 100, 4
+
+    UNION ALL SELECT 'Semana da mobilidade verde', 'Planejar um trajeto sustentável', 40, 1
+    UNION ALL SELECT 'Semana da mobilidade verde', 'Utilizar transporte coletivo', 50, 2
+    UNION ALL SELECT 'Semana da mobilidade verde', 'Experimentar caminhar ou pedalar', 50, 3
+    UNION ALL SELECT 'Semana da mobilidade verde', 'Avaliar os benefícios da mudança', 60, 4
+) x
+JOIN tbl_missao m ON m.nome = x.missao
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_missao_etapa e
+    WHERE e.id_missao = m.id AND e.ordem = x.ordem
+);
+
+-- =====================================================
+-- 10. DESAFIOS
+-- =====================================================
+
+INSERT INTO tbl_desafio
+(nome, descricao, super_coins, data_inicio, data_termino,
+ id_dificuldade, id_tipo_desafio, meta_participantes)
+SELECT
+    x.nome,
+    x.descricao,
+    x.coins,
+    CURDATE(),
+    DATE_ADD(CURDATE(), INTERVAL x.dias DAY),
+    d.id,
+    t.id,
+    x.meta
+FROM (
+    SELECT 'Cidade mais limpa' AS nome,
+    'Participe de ações para manter os espaços públicos limpos e preservar o meio ambiente.' AS descricao,
+    250 AS coins, 30 AS dias, 'Médio' AS dificuldade,
+    'Coletivo' AS tipo, 30 AS meta
+
+    UNION ALL SELECT '30 dias de sustentabilidade',
+    'Pratique uma atitude sustentável todos os dias durante um mês.',
+    300, 30, 'Difícil', 'Individual', 1
+
+    UNION ALL SELECT 'Plantio coletivo',
+    'Mobilize pessoas para plantar e cuidar de mudas em sua comunidade.',
+    400, 45, 'Médio', 'Coletivo', 50
+) x
+JOIN tbl_dificuldade d ON d.nome = x.dificuldade
+JOIN tbl_tipo_desafio t ON t.nome = x.tipo
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_desafio des WHERE des.nome = x.nome
+);
+
+-- =====================================================
+-- 11. CATEGORIAS DOS DESAFIOS
+-- =====================================================
+
+INSERT INTO tbl_desafio_categoria (id_desafio, id_categoria)
+SELECT d.id, c.id
+FROM (
+    SELECT 'Cidade mais limpa' AS desafio, 'Meio Ambiente' AS categoria
+    UNION ALL SELECT '30 dias de sustentabilidade', 'Sustentabilidade'
+    UNION ALL SELECT 'Plantio coletivo', 'Biodiversidade'
+) x
+JOIN tbl_desafio d ON d.nome = x.desafio
+JOIN tbl_categoria c ON c.nome = x.categoria
+WHERE NOT EXISTS (
+    SELECT 1 FROM tbl_desafio_categoria dc
+    WHERE dc.id_desafio = d.id AND dc.id_categoria = c.id
+);
+
+COMMIT;
+
+-- =====================================================
+-- 12. CONFERÊNCIA DOS CADASTROS
+-- =====================================================
+
+SELECT
+    id, nome, email, total_xp, coins, exibir_ranking
+FROM tbl_usuario
+WHERE email LIKE '%@vibeeco.com'
+ORDER BY total_xp DESC;
+
+SELECT id, nome, qtde_xp, duracao_leitura
+FROM tbl_conteudo_educativo
+ORDER BY id;
+
+SELECT id, nome, coins, total_xp_missao
+FROM tbl_missao
+ORDER BY id;
+
+SELECT
+    m.nome AS missao,
+    e.ordem,
+    e.titulo,
+    e.xp
+FROM tbl_missao_etapa e
+JOIN tbl_missao m ON m.id = e.id_missao
+ORDER BY m.id, e.ordem;
+
+SELECT id, nome, super_coins, meta_participantes
+FROM tbl_desafio
+ORDER BY id;
